@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import PostJobsBanner from "@/components/PostJobBanner";
 
@@ -36,6 +37,10 @@ import {
   SiWebflow,
 } from "react-icons/si";
 import { useState } from "react";
+
+
+import { SiVodafone, SiIntel, SiTesla, SiAmd } from "react-icons/si";
+
 
 const jobs = [
   {
@@ -171,134 +176,249 @@ export default function Home() {
         <Navbar />
       </nav>
      */}
-      <section className="hero w-full px-4 py-10 sm:px-6 sm:py-14 lg:py-20">
-        <div className="mx-auto max-w-7xl">
-          <div className="max-w-2xl">
-            <h1 className="text-[clamp(2.35rem,10vw,4rem)] font-bold leading-[1.12] tracking-tight text-slate-800 sm:text-6xl lg:text-7xl">
-              Discover
-              <br />
-              more than
-              <br />
-              <span className="font-serif text-sky-400">5000+ Jobs</span>
-            </h1>
+     
+<section className="relative w-full overflow-hidden bg-[#F8F8FD] px-5 py-12 sm:px-8 lg:px-12 lg:py-16">
 
-            <p className="mt-5 max-w-md text-sm leading-7 text-slate-400 sm:text-base">
-              Great platform for the job seeker that searching for new career heights and passionate about startups.
-            </p>
+  <div className="relative mx-auto max-w-7xl">
 
-          </div>
-          
+    <div className="max-w-2xl">
 
-          
-          <div className="mt-8 w-full max-w-2xl bg-white p-3 shadow-md sm:p-4">
-            <div className="flex min-w-0 flex-col items-stretch gap-3 md:flex-row md:items-center md:gap-4">
+      <h1 className="text-[52px] font-bold leading-[1.12] tracking-[-1.5px] text-slate-800 sm:text-[52px] lg:text-[58px]">
+        Discover
+        <br />
+        more than
+        <br />
+        <span className="text-sky-400">
+          5000+ Jobs
+        </span>
+      </h1>
 
-              <div className="flex min-w-0 w-full flex-1 items-center gap-3 px-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="22"
-                  height="22"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  className="text-slate-700"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.35-4.35" />
-                </svg>
+      {/* Blue Vector Stroke */}
+      <svg
+        viewBox="0 0 340 28"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="mt-2 h-6 w-[270px] sm:w-[320px]"
+        aria-hidden="true"
+      >
+        <path
+          d="M4 12C72 8 202 4 318 5"
+          stroke="#29A3FF"
+          strokeWidth="4"
+          strokeLinecap="round"
+        />
+        <path
+          d="M8 22C92 13 231 13 330 12"
+          stroke="#29A3FF"
+          strokeWidth="4"
+          strokeLinecap="round"
+        />
+        <path
+          d="M310 8L328 12L316 19"
+          stroke="#29A3FF"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
 
-                <input
-                  type="text"
-                  placeholder="Job title or keyword"
-                  className="min-w-0 w-full border-b border-gray-200 py-3 text-sm text-slate-700 outline-none placeholder:text-gray-400 focus:border-indigo-600"
-                />
-              </div>
+      <p className="mt-5 max-w-[430px] text-sm leading-6 text-slate-400 sm:text-base">
+        Great platform for the job seeker that searching for
+        new career heights and passionate about startups.
+      </p>
 
-              {/* Location */}
-              <div className="flex min-w-0 w-full flex-1 items-center gap-3 px-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="22"
-                  height="22"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  className="text-slate-700"
-                >
-                  <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                  <circle cx="12" cy="10" r="2.5" />
-                </svg>
+    </div>
 
-                <select
-                  defaultValue="Florence, Italy"
-                  aria-label="Job location"
-                  className="min-w-0 w-full cursor-pointer border-b border-gray-200 bg-white py-3 text-sm text-slate-700 outline-none focus:border-indigo-600"
-                >
-                  <option>Florence, Italy</option>
-                  <option>Islamabad, Pakistan</option>
-                  <option>Lahore, Pakistan</option>
-                  <option>Karachi, Pakistan</option>
-                  <option>Remote</option>
-                </select>
-              </div>
+    {/* Search Bar */}
+    <div className="mt-6 w-full max-w-[610px] bg-white p-3 shadow-lg sm:mt-7">
+      <div className="flex flex-col items-stretch gap-3 md:flex-row md:items-center md:gap-4">
 
-              {/* Search Button */}
-              <button
-                type="button"
-                className="w-full whitespace-nowrap bg-indigo-600 px-7 py-4 text-sm font-semibold text-white hover:bg-indigo-700 md:w-auto"
-              >
-                Search my job
-              </button>
+        {/* Job Keyword */}
+        <div className="flex min-w-0 flex-1 items-center gap-3 px-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="21"
+            height="21"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            className="shrink-0 text-slate-700"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
 
-            </div>
-          </div>
-
-          <div>
-            <p className="mt-3 max-w-md text-sm  text-slate-600 sm:text-base">
-              Popular : UI Designer, UX Researcher, Android, Admin
-            </p>
-          </div>
-
+          <input
+            type="text"
+            placeholder="Job title or keyword"
+            className="min-w-0 w-full border-b border-gray-200 py-3 text-xs text-slate-700 outline-none placeholder:text-gray-400 focus:border-indigo-600"
+          />
         </div>
-      </section>
+
+        {/* Location */}
+        <div className="flex min-w-0 flex-1 items-center gap-3 px-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="21"
+            height="21"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            className="shrink-0 text-slate-700"
+          >
+            <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+            <circle cx="12" cy="10" r="2.5" />
+          </svg>
+
+          <select
+            defaultValue="Florence, Italy"
+            aria-label="Job location"
+            className="min-w-0 w-full border-b border-gray-200 bg-white py-3 text-xs text-slate-700 outline-none focus:border-indigo-600"
+          >
+            <option>Florence, Italy</option>
+            <option>Islamabad, Pakistan</option>
+            <option>Lahore, Pakistan</option>
+            <option>Karachi, Pakistan</option>
+            <option>Remote</option>
+          </select>
+        </div>
+
+        {/* Search Button */}
+        <button
+          type="button"
+          className="w-full shrink-0 bg-indigo-600 px-6 py-3.5 text-xs font-semibold text-white hover:bg-indigo-700 md:w-auto"
+        >
+          Search my job
+        </button>
+
+      </div>
+    </div>
+
+    {/* Popular Searches */}
+    <p className="mt-3 text-xs leading-5 text-slate-500 sm:text-sm">
+      Popular : UI Designer, UX Researcher, Android, Admin
+    </p>
+
+  </div>
+
+  {/* Bottom-right diagonal decoration */}
+  <div className="pointer-events-none absolute bottom-0 right-0 hidden h-16 w-40 bg-white [clip-path:polygon(100%_0,100%_100%,0_100%)] lg:block" />
+
+</section>
+
       
-      <section className="w-full bg-white py-10 sm:py-14">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <p className="mb-8 text-lg text-gray-400">
-            Companies we helped grow
-          </p>
+    
+{/* <section className="w-full bg-white px-5 py-10 sm:px-8 sm:py-14 lg:px-12">
+  <div className="mx-auto max-w-7xl">
 
-          <div className="grid grid-cols-2 items-center justify-items-center gap-x-3 gap-y-7 pt-2 sm:grid-cols-3 sm:gap-8 lg:grid-cols-5">
-            <div className="flex items-center gap-2 text-gray-400">
-              {/* <SiVodafone className="text-3xl" /> */}
-              <span className="font-serif text-base font-bold sm:text-xl">vodafone</span>
-            </div>
+    <p className="mb-7 text-sm font-normal text-gray-400 sm:mb-8">
+      Companies we helped grow
+    </p>
 
-            <div className="flex items-center justify-center text-gray-400">
-              {/* <SiIntel className="text-6xl" /> */}
-              <span className="font-serif text-base font-bold sm:text-xl">Intel</span>
-            </div>
+    <div className="grid grid-cols-2 items-center gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-x-12">
 
-            <div className="flex items-center justify-center text-gray-400">
-              {/* <SiTesla className="text-7xl" /> */}
-              <span className="font-serif text-base font-bold sm:text-xl">Tesla</span>
-            </div>
+      <div className="flex items-center justify-start">
+        <Image
+          src="/logos/vodafone.svg"
+          alt="Vodafone"
+          width={130}
+          height={45}
+          className="h-8 w-auto max-w-full object-contain grayscale opacity-35"
+        />
+      </div>
 
-            <div className="flex items-center justify-center text-gray-400">
-              {/* <SiAmd className="text-6xl" /> */}
-              <span className="font-serif text-base font-bold sm:text-xl">AMD</span>
-            </div>
+      <div className="flex items-center justify-center">
+        <Image
+          src="/logos/intel.svg"
+          alt="Intel"
+          width={100}
+          height={45}
+          className="h-8 w-auto max-w-full object-contain grayscale opacity-35"
+        />
+      </div>
 
-            <div className="flex items-center justify-center text-gray-400">
-              <span className="font-serif text-base font-bold sm:text-lg">
-                Talkit
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <div className="flex items-center justify-start sm:justify-center">
+        <Image
+          src="/logos/tesla.svg"
+          alt="Tesla"
+          width={145}
+          height={45}
+          className="h-7 w-auto max-w-full object-contain grayscale opacity-35"
+        />
+      </div>
+
+      <div className="flex items-center justify-center">
+        <Image
+          src="/logos/amd.svg"
+          alt="AMD"
+          width={120}
+          height={45}
+          className="h-8 w-auto max-w-full object-contain grayscale opacity-35"
+        />
+      </div>
+
+      <div className="col-span-2 flex items-center justify-center sm:col-span-1">
+        <Image
+          src="/logos/talkit.svg"
+          alt="Talkit"
+          width={115}
+          height={45}
+          className="h-8 w-auto max-w-full object-contain grayscale opacity-35"
+        />
+      </div>
+
+    </div>
+  </div>
+</section> */}
+
+
+
+<section className="w-full bg-white px-5 py-10 sm:px-8 sm:py-14 lg:px-12">
+  <div className="mx-auto max-w-7xl">
+    <p className="mb-8 text-lg text-gray-400">
+      Companies we helped grow
+    </p>
+
+    <div className="grid grid-cols-2 items-center gap-x-5 gap-y-9 sm:grid-cols-3 lg:grid-cols-5">
+
+      {/* Vodafone */}
+      <div className="flex items-center gap-2 text-gray-400">
+        <SiVodafone className="shrink-0 text-3xl" />
+        <span className="text-lg font-bold tracking-tight">
+          vodafone
+        </span>
+      </div>
+
+      {/* Intel */}
+      <div className="flex items-center justify-center text-gray-400">
+        <SiIntel className="text-6xl" />
+      </div>
+
+      {/* Tesla */}
+      <div className="flex items-center justify-center text-gray-400">
+        <SiTesla className="text-6xl" />
+      </div>
+
+      {/* AMD */}
+      <div className="flex items-center justify-center text-gray-400">
+        <SiAmd className="text-6xl" />
+      </div>
+
+      {/* Talkit */}
+      <div className="col-span-2 flex items-center justify-center text-gray-400 sm:col-span-1">
+        <span className="font-serif text-3xl font-bold tracking-tight">
+          Talkit
+        </span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
 
 
 
