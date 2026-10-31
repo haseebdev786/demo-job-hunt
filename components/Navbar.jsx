@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import AuthNavLinks from "./AuthNavLinks";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -31,21 +32,7 @@ export default function Navbar() {
         </div>
 
         <div className="hidden items-center gap-4 md:flex">
-          <Link
-            href="/login"
-            className="px-3 text-sm font-semibold text-indigo-600"
-          >
-            Login
-          </Link>
-
-          <div className="h-9 w-px bg-gray-200"></div>
-
-          <Link
-            href="/signup"
-            className="bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700"
-          >
-            Sign Up
-          </Link>
+          <AuthNavLinks />
         </div>
 
         <button
@@ -83,21 +70,7 @@ export default function Navbar() {
 
           <div className="border-t border-gray-200"></div>
 
-          <Link
-            href="/login"
-            onClick={() => setMenuOpen(false)}
-            className="text-sm font-semibold text-indigo-600"
-          >
-            Login
-          </Link>
-
-          <Link
-            href="/signup"
-            onClick={() => setMenuOpen(false)}
-            className="bg-indigo-600 px-6 py-3 text-center text-sm font-semibold text-white"
-          >
-            Sign Up
-          </Link>
+          <AuthNavLinks onNavigate={() => setMenuOpen(false)} />
         </div>
       )}
     </nav>

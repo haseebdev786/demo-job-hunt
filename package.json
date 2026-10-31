@@ -6,14 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:auth": "node scripts/test-auth.mjs"
   },
   "dependencies": {
+    "@better-auth/mongo-adapter": "^1.7.14",
+    "better-auth": "^1.7.14",
     "lucide-react": "^1.61.0",
+    "mongodb": "^7.7.0",
     "next": "16.4.3",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "react-icons": "^5.7.0"
+    "react-icons": "^5.7.0",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",

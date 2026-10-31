@@ -1,29 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
+import { jobs } from "@/lib/jobs";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import {
   ArrowLeft, ArrowRight, ChevronDown, ChevronUp, Grid2X2,
   List, MapPin, Search, SlidersHorizontal, X,
 } from "lucide-react";
-import { FaDropbox } from "react-icons/fa";
-import { SiCanvas } from "react-icons/si";
 
-const jobs = [
-  { id: 1, title: "Social Media Assistant", company: "Nomad", location: "Paris, France", category: "Marketing", type: "Full-Time", level: "Entry Level", salary: "€30k - €60k", logo: "N", logoColor: "text-emerald-500", applicants: 5 },
-  { id: 2, title: "Brand Designer", company: "Dropbox", location: "San Francisco, USA", category: "Design", type: "Full-Time", level: "Mid Level", salary: "€60k - €100k", logo: FaDropbox, logoColor: "text-blue-600", applicants: 2 },
-  { id: 3, title: "Interactive Developer", company: "Terraform", location: "Hamburg, Germany", category: "Technology", type: "Remote", level: "Senior Level", salary: "€60k - €100k", logo: "T", logoColor: "text-cyan-500", applicants: 2 },
-  { id: 4, title: "Email Marketing", company: "Revolut", location: "Madrid, Spain", category: "Marketing", type: "Full-Time", level: "Entry Level", salary: "€30k - €60k", logo: "R", logoColor: "text-slate-900", applicants: 0 },
-  { id: 5, title: "Lead Engineer", company: "Canva", location: "Ontario, Canada", category: "Engineering", type: "Full-Time", level: "Director", salary: "€100k+", logo: SiCanvas, logoColor: "text-teal-500", applicants: 6 },
-  { id: 6, title: "Product Designer", company: "ClassPass", location: "Barcelona, Spain", category: "Design", type: "Part-Time", level: "Mid Level", salary: "€30k - €60k", logo: "C", logoColor: "text-blue-600", applicants: 6 },
-  { id: 7, title: "Customer Manager", company: "Pitch", location: "Berlin, Germany", category: "Business", type: "Full-Time", level: "Senior Level", salary: "€60k - €100k", logo: "P", logoColor: "text-slate-900", applicants: 5 },
-  { id: 8, title: "Visual Designer", company: "Blinkist", location: "Granada, Spain", category: "Design", type: "Remote", level: "Entry Level", salary: "€30k - €60k", logo: "B", logoColor: "text-emerald-500", applicants: 3 },
-  { id: 9, title: "HR Manager", company: "Webflow", location: "Lucerne, Switzerland", category: "Human Resource", type: "Full-Time", level: "Director", salary: "€100k+", logo: "W", logoColor: "text-indigo-600", applicants: 4 },
-  { id: 10, title: "Financial Analyst", company: "GoDaddy", location: "Marseille, France", category: "Finance", type: "Internship", level: "Entry Level", salary: "€0 - €30k", logo: "G", logoColor: "text-green-600", applicants: 1 },
-  { id: 11, title: "Sales Specialist", company: "Notion", location: "London, UK", category: "Sales", type: "Contract", level: "Mid Level", salary: "€60k - €100k", logo: "N", logoColor: "text-slate-900", applicants: 3 },
-  { id: 12, title: "Backend Developer", company: "Dropbox", location: "Remote", category: "Technology", type: "Remote", level: "Senior Level", salary: "€100k+", logo: FaDropbox, logoColor: "text-blue-600", applicants: 4 },
-];
+
 
 const filters = [
   { title: "Type of Employment", field: "type", options: ["Full-Time", "Part-Time", "Remote", "Internship", "Contract"] },
@@ -161,9 +148,16 @@ export default function FindJobsPage() {
               {pagedJobs.map((job) => (
                 <article key={job.id} className={`min-w-0 border border-slate-200 bg-white p-3 transition hover:border-indigo-300 hover:shadow-md sm:p-4 ${view === "list" ? "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" : "flex flex-col gap-4"}`}>
                   <div className="flex min-w-0 items-start gap-3 sm:gap-4">
-                    <JobLogo job={job} />
+                    {/* CHANGED: logo + title now link to the job description page */}
+                    <Link href={`/jobs/${job.id}`} aria-label={`View ${job.title} at ${job.company}`}>
+                      <JobLogo job={job} />
+                    </Link>
                     <div className="min-w-0">
-                      <h3 className="text-sm font-bold sm:text-base">{job.title}</h3>
+                      <h3 className="text-sm font-bold sm:text-base">
+                        <Link href={`/jobs/${job.id}`} className="hover:text-indigo-600">
+                          {job.title}
+                        </Link>
+                      </h3>
                       <p className="mt-1 text-xs text-slate-500">{job.company} · {job.location}</p>
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         <span className="rounded-full bg-teal-50 px-2 py-1 text-[10px] text-teal-600">{job.type}</span>
@@ -207,4 +201,3 @@ export default function FindJobsPage() {
     </div>
   );
 }
-

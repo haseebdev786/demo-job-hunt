@@ -1,4 +1,9 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+
+/* Limit Tailwind's watcher to the folders that contain UI classes. */
+@source "./";
+@source "../components";
+@source "../lib";
 
 :root {
   --background: #ffffff;
