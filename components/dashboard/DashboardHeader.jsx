@@ -160,11 +160,16 @@ export default function DashboardHeader({ title, notifications }) {
     if (notifications) return;
     let cancelled = false;
     fetch("/api/dashboard/notifications")
-      .then((res) => (res.ok ? res.json() : null))
+      .then((res) => {
+        if (!res.ok) throw new Error("Unable to load notifications");
+        return res.json();
+      })
       .then((data) => {
         if (!cancelled && data) setFetched(data);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) setFetched({ notifications: [], unreadCount: 0, connected: false });
+      });
     return () => {
       cancelled = true;
     };
@@ -173,9 +178,9 @@ export default function DashboardHeader({ title, notifications }) {
   const effective = notifications || fetched;
 
   return (
-    <div className="flex shrink-0 flex-wrap items-start justify-between gap-4">
-      <h1 className="pl-10 text-2xl font-black text-slate-800 lg:pl-0">{title}</h1>
-      <div className="flex items-center gap-3">
+    <div className="relative flex min-h-11 shrink-0 items-center justify-between gap-3">
+      <h1 className="min-w-0 flex-1 pl-14 text-xl font-black leading-7 text-slate-800 sm:text-2xl lg:pl-0">{title}</h1>
+      <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
         {/* Bell stays OUTSIDE the account dropdown, as requested. */}
         {effective ? (
           <NotificationsPanel
@@ -184,12 +189,12 @@ export default function DashboardHeader({ title, notifications }) {
             connected={effective.connected}
           />
         ) : (
-          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400" aria-label="Loading notifications">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400" aria-label="Loading notifications">
             <Bell size={18} />
           </span>
         )}
         {/* Same account menu as the main navbar: Dashboard, My Profile, Logout. */}
-        <AuthNavLinks />
+        <AuthNavLinks compact />
       </div>
     </div>
   );

@@ -39,7 +39,7 @@ function Avatar({ name, image, size }) {
   );
 }
 
-export default function AuthNavLinks({ onNavigate }) {
+export default function AuthNavLinks({ onNavigate, compact = false }) {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const [open, setOpen] = useState(false);
@@ -129,11 +129,11 @@ export default function AuthNavLinks({ onNavigate }) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label="Account menu"
-        className="flex items-center gap-2 text-sm font-semibold text-slate-800 hover:text-indigo-600"
+        className="flex min-h-11 min-w-11 items-center justify-center gap-2 text-sm font-semibold text-slate-800 hover:text-indigo-600"
       >
         <Avatar name={name} image={user.image} />
-        <span className="max-w-40 truncate">{name}</span>
-        <ChevronDown size={16} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+        <span className={`max-w-40 truncate ${compact ? "hidden sm:block" : ""}`}>{name}</span>
+        <ChevronDown size={16} className={`transition-transform ${compact ? "hidden sm:block" : ""} ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (

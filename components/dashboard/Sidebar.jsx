@@ -128,7 +128,7 @@ export default function Sidebar({ user }) {
         type="button"
         aria-label="Open menu"
         onClick={() => setOpen(true)}
-        className="fixed left-4 top-4 z-40 border border-slate-200 bg-white p-2 text-slate-700 lg:hidden"
+        className="absolute left-4 top-8 z-40 flex h-11 w-11 items-center justify-center border border-slate-200 bg-white text-slate-700 sm:left-6 lg:hidden"
       >
         <Menu size={20} />
       </button>

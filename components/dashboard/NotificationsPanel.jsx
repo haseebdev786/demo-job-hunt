@@ -14,8 +14,8 @@
 // repo, so the panel shows an initial-letter circle (or
 // actorAvatarUrl from MongoDB when one is set for that actor).
 
-import { useEffect, useRef, useState } from "react";
-import { Bell, Calendar, Clock } from "lucide-react";
+import { useEffect, useId, useRef, useState } from "react";
+import { Bell, Calendar, Clock, X } from "lucide-react";
 
 function ActorAvatar({ name, avatarUrl }) {
   if (avatarUrl) {
@@ -47,7 +47,10 @@ export default function NotificationsPanel({ initialNotifications, initialUnread
   const [notifications, setNotifications] = useState(initialNotifications || []);
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount || 0);
   const [marking, setMarking] = useState(false);
+  const [error, setError] = useState("");
   const panelRef = useRef(null);
+  const buttonRef = useRef(null);
+  const panelId = useId();
 
   useEffect(() => {
     if (!open) return;
@@ -55,17 +58,22 @@ export default function NotificationsPanel({ initialNotifications, initialUnread
       if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false);
     }
     function handleEscape(e) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
     }
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("pointerdown", handleClickOutside);
     document.addEventListener("keydown", handleEscape);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("pointerdown", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     };
   }, [open ]);
 
   async function handleMarkAllRead() {
+    if (marking) return;
+    setError("");
     setMarking(true);
     try {
       const res = await fetch("/api/dashboard/notifications", {
@@ -73,23 +81,29 @@ export default function NotificationsPanel({ initialNotifications, initialUnread
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "mark-all-read" }),
       });
+      if (!res.ok) throw new Error("Unable to update notifications");
       if (res.ok) {
         setNotifications((prev) => prev.map((n) => ({ ...n, read: true, badge: n.badge === "New" ? "" : n.badge })));
         setUnreadCount(0);
       }
+    } catch {
+      setError("Could not mark notifications as read. Please try again.");
     } finally {
       setMarking(false);
     }
   }
 
   return (
-    <div ref={panelRef} className="relative">
+    <div ref={panelRef} className="static sm:relative">
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label="Notifications"
         aria-expanded={open}
-        className="relative flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:text-indigo-600"
+        aria-controls={open ? panelId : undefined}
+        aria-haspopup="dialog"
+        className="relative flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:text-indigo-600 focus-visible:outline-2 focus-visible:outline-indigo-600"
       >
         <Bell size={18} />
         {unreadCount > 0 && (
@@ -100,23 +114,27 @@ export default function NotificationsPanel({ initialNotifications, initialUnread
       </button>
 
       {open && (
-        <div className="absolute right-0 top-11 z-50 w-[380px] max-w-[90vw] border border-slate-200 bg-white shadow-xl">
-          <div className="flex items-center justify-between px-5 py-4">
-            <h2 className="text-base font-bold text-slate-800">Notifications</h2>
+        <div id={panelId} role="dialog" aria-labelledby={`${panelId}-title`} className="absolute right-0 top-full z-50 mt-2 flex max-h-[min(70dvh,560px)] w-[380px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 px-4 py-3">
+            <h2 id={`${panelId}-title`} className="text-base font-bold text-slate-800">Notifications</h2>
+            <button type="button" aria-label="Close notifications" onClick={() => { setOpen(false); buttonRef.current?.focus(); }} className="ml-auto flex h-9 w-9 items-center justify-center rounded text-slate-500 hover:bg-slate-100">
+              <X size={18} />
+            </button>
             <button
               type="button"
               onClick={handleMarkAllRead}
-              disabled={marking || unreadCount === 0}
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 disabled:opacity-40"
+              disabled={marking || !connected || unreadCount === 0}
+              className="w-full text-left text-xs font-semibold text-indigo-600 hover:text-indigo-700 disabled:opacity-40"
             >
               {marking ? "Saving..." : "Mark all as read"}
             </button>
           </div>
 
-          <div className="border-t border-slate-100">
+          {error && <p role="alert" className="px-4 pb-3 text-xs text-red-600">{error}</p>}
+          <div className="min-h-0 overflow-y-auto overscroll-contain border-t border-slate-100">
             {!connected && (
               <p className="px-5 py-6 text-sm text-slate-500">
-                MongoDB is not connected yet, so no notifications can be loaded.
+                Notifications are unavailable right now. Please refresh and try again.
               </p>
             )}
             {connected && notifications.length === 0 && (
