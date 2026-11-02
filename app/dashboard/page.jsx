@@ -193,13 +193,9 @@ export default async function DashboardPage() {
       {/* MongoDB not connected notice -- shown only when there is no data source */}
       {!data.connected && (
         <div className="mt-6 border border-amber-200 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-800">
-          <p className="font-bold">MongoDB is not connected yet.</p>
+          <p className="font-bold">Dashboard data is temporarily unavailable.</p>
           <p>
-            Set <code className="font-mono text-xs">MONGODB_URI</code> in{" "}
-            <code className="font-mono text-xs">.env.local</code>, run{" "}
-            <code className="font-mono text-xs">npm install mongodb</code> and{" "}
-            <code className="font-mono text-xs">node scripts/seed-dashboard.js</code>, then reload.
-            Real applications saved in MongoDB will appear here automatically -- no code change needed.
+            We couldn&apos;t connect to the database. Please try refreshing shortly.
           </p>
         </div>
       )}

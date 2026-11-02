@@ -9,7 +9,8 @@
 
 import { Suspense } from "react";
 import PostJobPage from "@/components/company/PostJobPage";
-import { getCompanySessionUser } from "@/lib/company-session-data";
+import { getCurrentUser } from "@/lib/session";
+import { redirect } from "next/navigation";
 import CompanyLoading from "../../loading";
 
 export default function PostJobPageRoute() {
@@ -21,11 +22,13 @@ export default function PostJobPageRoute() {
 }
 
 async function PostJobContent() {
-  const sessionData = await getCompanySessionUser();
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  if (user.accountType !== "company") redirect("/dashboard");
   return (
     <PostJobPage
-      companyName={sessionData.loggedIn ? sessionData.user.name : "Nomad"}
-      companyInitial={sessionData.loggedIn ? sessionData.user.initial : "N"}
+      companyName={user.name}
+      companyInitial={user.name.charAt(0)}
     />
   );
 }

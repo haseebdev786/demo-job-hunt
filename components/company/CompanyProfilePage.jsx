@@ -14,9 +14,11 @@
 import Link from "next/link";
 import { Globe, Mail } from "lucide-react";
 import { companyProfileData } from "@/lib/company-profile-data";
+import { demoCompanyJobHref } from "@/lib/demo-links";
 
-export default function CompanyProfilePage({ companyName = "Nomad", companyInitial = "N" }) {
+export default function CompanyProfilePage({ companyName = "Nomad", companyInitial = "N", jobs = [], publicHref = "/companies" }) {
   const data = companyProfileData;
+  const openJobs = [...jobs, ...data.openJobs.map((job) => ({ ...job, id: `demo-${job.title}`, demo: true }))];
 
   return (
     <div className="px-4 py-8 sm:px-6 lg:px-10">
@@ -31,7 +33,7 @@ export default function CompanyProfilePage({ companyName = "Nomad", companyIniti
           </div>
         </div>
         <div className="flex gap-2">
-          <Link href="/companies" className="border border-indigo-200 px-4 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-50">
+          <Link href={publicHref} className="border border-indigo-200 px-4 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-50">
             Public View
           </Link>
           <Link href="/company/settings" className="bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
@@ -100,14 +102,14 @@ export default function CompanyProfilePage({ companyName = "Nomad", companyIniti
               <Link href="/company/jobs" className="text-sm font-semibold text-indigo-600">Show all jobs</Link>
             </div>
             <div className="mt-4 divide-y divide-slate-100">
-              {data.openJobs.map((job) => (
-                <div key={job.title} className="flex flex-wrap items-center justify-between gap-3 py-3">
+              {openJobs.map((job) => (
+                <Link href={job.demo ? demoCompanyJobHref(job.title) : `/company/jobs/${job.id}`} key={job.id} className="flex flex-wrap items-center justify-between gap-3 py-3 hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-indigo-600">
                   <div>
                     <p className="text-sm font-bold text-slate-800">{job.title}</p>
                     <p className="text-xs text-slate-500">{job.type} - {job.location}</p>
                   </div>
-                  <p className="text-xs text-slate-500">{job.applied} applied of {job.capacity} capacity</p>
-                </div>
+                  <p className="text-xs text-slate-500">{job.demo ? `${job.applied} applied of ${job.capacity} capacity` : `${job.applicants} applications`}</p>
+                </Link>
               ))}
             </div>
           </section>

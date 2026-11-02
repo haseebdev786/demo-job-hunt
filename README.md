@@ -10,14 +10,22 @@ Email/password authentication uses [Better Auth](https://better-auth.com/docs/in
 - `BETTER_AUTH_URL` must match the application origin; use the deployed HTTPS origin in production.
 - On Vercel, set `BETTER_AUTH_URL=https://demojobhuntbyhaseeb.vercel.app` (without `/login`) in Project Settings → Environment Variables, then redeploy. Set `MONGODB_URI`, `MONGODB_DB`, and `BETTER_AUTH_SECRET` there as well; local `.env` files are not deployed by Git.
 - Auth also trusts this project's exact `VERCEL_PROJECT_PRODUCTION_URL`, `VERCEL_BRANCH_URL`, and `VERCEL_URL` domains. If a localhost auth URL was copied to Vercel, the server uses the Vercel URL instead. Keep access to Vercel System Environment Variables enabled.
-- `/signup` creates a `job-seeker` or `company` account and signs the user in. `/login` checks the selected account type. Seekers go to `/jobs`; company users go to `/companies`.
+- `/signup` creates a `job-seeker` or `company` account and signs the user in. `/login` checks the selected account type. Seekers go to `/dashboard`; company users go to `/company`.
 - Passwords require 8–128 characters and are stored as hashes. Sessions use HttpOnly cookies; Remember me selects a persistent cookie with a 30-day session lifetime. Logout revokes the database session.
 - Auth records live in `user`, `account`, `session`, and `rateLimit`. Indexes protect email uniqueness and session tokens. Expired sessions are removed automatically.
 - Google sign-in is disabled until OAuth is configured. Email verification and password reset email delivery are not configured yet.
 
-### Adding job applications next
+### Published jobs
 
-The current job listings still use `lib/jobs.js`; application forms and submission APIs are the next feature. In new server Route Handlers, import `getCurrentUser` from `@/lib/session` and `getDb` from `@/lib/db`. Return 401 if the user is missing and check the stored `accountType` before allowing the action. For applications, derive `userId` from the authenticated user rather than trusting the request body. Always filter reads/updates by the owner. A company account is not proof of membership in an existing listed company; add company ownership before enabling employer management.
+Company accounts publish through `/company/jobs/new`. The authenticated `/api/company/jobs` endpoint validates the form and saves it in MongoDB's `jobPosts` collection. Ownership and company name come from the session. Only that owner can see the employer's job list and detail pages.
+
+The homepage, public and dashboard job lists, job descriptions and hiring companies show the original demo catalog alongside published records through `lib/job-posts.js`. Demo fixtures remain in source files and are never inserted into MongoDB. Company dashboards also retain their demo job cards and detail previews alongside the signed-in company's own posts. Public profiles for real posts represent the publishing accounts; names are supplied by those accounts, not independently verified brands.
+
+Run `node scripts/test-jobs.mjs` against a local server. `TEST_BASE_URL` defaults to `http://localhost:3000`. The test checks company login, publishing, validation, role/origin/ownership protection, saved data and rendered routes. It deletes only its own temporary accounts and jobs in `finally`.
+
+### Functionality still in preview
+
+Job application submission and resume storage are not connected yet; the application modal explicitly says that nothing was sent. Company settings, schedule changes, messages, applicant management and analytics still contain local state or sample data. The posting form's formatting toolbar and salary drag control are display-only; text and numeric salary inputs work. These are separate from the working job publishing flow.
 
 ### Validate authentication
 

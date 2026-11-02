@@ -24,12 +24,9 @@ export default async function ApplicationsPage() {
     <>
       {!data.connected && (
         <div className="mx-4 mt-8 border border-amber-200 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-800 sm:mx-6 lg:mx-10">
-          <p className="font-bold">MongoDB is not connected yet.</p>
+          <p className="font-bold">Applications are temporarily unavailable.</p>
           <p>
-            Set <code className="font-mono text-xs">MONGODB_URI</code> in{" "}
-            <code className="font-mono text-xs">.env.local</code> and run{" "}
-            <code className="font-mono text-xs">node scripts/seed-dashboard.js</code>, then reload.
-            The page shows an empty state instead of fake applications until then.
+            We couldn&apos;t connect to the database. Please try refreshing shortly.
           </p>
         </div>
       )}

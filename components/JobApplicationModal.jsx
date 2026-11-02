@@ -120,10 +120,9 @@ export default function JobApplicationModal({ open, onClose, job }) {
         {submitted ? (
           <div className="py-10 text-center">
             <CheckCircle2 size={48} className="mx-auto text-emerald-500" />
-            <h2 className="mt-4 text-2xl font-bold text-slate-800">Application submitted!</h2>
+            <h2 className="mt-4 text-2xl font-bold text-slate-800">Application preview</h2>
             <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-slate-500">
-              Thanks, {fullName}. Your application for {job.title} at {job.company} has
-              been received (demo). The company will contact you at {email}.
+              This is a preview only. Your application has not been sent to {job.company}.
             </p>
             <button
               type="button"

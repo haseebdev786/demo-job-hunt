@@ -26,6 +26,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Calendar, ChevronRight, Eye, FileText } from "lucide-react";
 import { companyDashboardData } from "@/lib/company-dashboard-data";
+import { demoCompanyJobHref } from "@/lib/demo-links";
 
 function StackedChart({ data, mode }) {
   const totals = data.map((d) =>
@@ -100,8 +101,13 @@ export default function CompanyDashboardPage({
   companyName = "Nomad",
   companyInitial = "N",
   firstName = "Maria",
+  jobs = [],
 }) {
-  const data = companyDashboardData;
+  const data = {
+    ...companyDashboardData,
+    jobsOpen: companyDashboardData.jobsOpen + jobs.filter((job) => job.status === "Live").length,
+    jobUpdates: [...jobs, ...companyDashboardData.jobUpdates.map((job) => ({ ...job, id: `demo-${job.title}`, demo: true }))],
+  };
   const [period, setPeriod] = useState("Week");
   const [viewMode, setViewMode] = useState("overview"); // overview | view | applied
   const chartData = data.chart[period] || data.chart.Week;
@@ -170,7 +176,7 @@ export default function CompanyDashboardPage({
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h2 className="text-base font-bold text-slate-800">Job statistics</h2>
-              <p className="mt-1 text-xs text-slate-500">Showing Jobstatistic Jul 19-25</p>
+              <p className="mt-1 text-xs text-slate-500">Sample analytics ? job views and charts are not available yet</p>
             </div>
             <div className="flex gap-1">
               {["Week", "Month", "Year"].map((p) => (
@@ -302,10 +308,11 @@ export default function CompanyDashboardPage({
           </Link>
         </div>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {!jobs.length && <p className="py-6 text-slate-500">No jobs posted yet.</p>}
           {data.jobUpdates.map((job) => {
-            const percent = Math.round((job.applied / job.capacity) * 100);
+
             return (
-              <article key={job.title} className="flex flex-col border border-slate-200 bg-white p-5">
+              <Link href={job.demo ? demoCompanyJobHref(job.title) : `/company/jobs/${job.id}`} key={job.id} className="flex flex-col border border-slate-200 bg-white p-5">
                 <div className="flex items-start justify-between gap-3">
                   <span className={`flex h-10 w-10 items-center justify-center rounded-md text-lg font-black ${job.logoBg} ${job.logoColor}`}>
                     {job.logo}
@@ -332,13 +339,13 @@ export default function CompanyDashboardPage({
                 </div>
                 <div className="mt-auto pt-4">
                   <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-                    <div className="h-full bg-emerald-500" style={{ width: `${percent}%` }} />
+                    <div className="h-full bg-emerald-500" style={{ width: job.demo ? `${Math.min(100, job.applied / job.capacity * 100)}%` : "0%" }} />
                   </div>
                   <p className="mt-2 text-xs text-slate-500">
-                    {job.applied} applied of {job.capacity} capacity
+                    {job.demo ? `${job.applied} applied of ${job.capacity} capacity` : `${job.applicants} applications`}
                   </p>
                 </div>
-              </article>
+              </Link>
             );
           })}
         </div>

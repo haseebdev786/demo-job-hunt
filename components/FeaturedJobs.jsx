@@ -1,92 +1,10 @@
 
 import Link from "next/link";
-import Image from "next/image";
-import { ArrowRight } from "lucide-react";
-import { FaDropbox } from "react-icons/fa";
-import { TbCircleDottedLetterR } from "react-icons/tb";
+import { demoLogos } from "@/lib/catalog-logos";
 
-const jobs = [
-  {
-    id: 1,
-    title: "Email Marketing",
-    company: "Revolut",
-    location: "Madrid, Spain",
-    logo: TbCircleDottedLetterR,
-    description:
-      "Revolut is looking for Email Marketing to help team manage campaigns.",
-    tags: ["Marketing", "Design"],
-  },
-  {
-    id: 2,
-    title: "Brand Designer",
-    company: "Dropbox",
-    location: "San Francisco, US",
-    logo: FaDropbox,
-    description:
-      "Dropbox is looking for Brand Designer to help the team.",
-    tags: ["Design", "Business"],
-  },
-  {
-    id: 3,
-    title: "Email Marketing",
-    company: "Pitch",
-    location: "Berlin, Germany",
-    logo: "/logos/pitch.png",
-    description:
-      "Pitch is looking for Customer Manager to join the marketing team.",
-    tags: ["Marketing"],
-  },
-  {
-    id: 4,
-    title: "Visual Designer",
-    company: "Blinkist",
-    location: "Granada, Spain",
-    logo: "/logos/blinkist.png",
-    description:
-      "Blinkist is looking for Visual Designer to help the design team.",
-    tags: ["Design"],
-  },
-  {
-    id: 5,
-    title: "Product Designer",
-    company: "ClassPass",
-    location: "Manchester, UK",
-    logo: "/logos/classpass.png",
-    description:
-      "ClassPass is looking for Product Designer to help us improve.",
-    tags: ["Marketing", "Design"],
-  },
-  {
-    id: 6,
-    title: "Lead Designer",
-    company: "Canva",
-    location: "Ontario, Canada",
-    logo: "/logos/canva.png",
-    description:
-      "Canva is looking for Lead Engineer to help develop new products.",
-    tags: ["Design", "Business"],
-  },
-  {
-    id: 7,
-    title: "Brand Strategist",
-    company: "GoDaddy",
-    location: "Marseille, France",
-    logo: "/logos/godaddy.png",
-    description:
-      "GoDaddy is looking for Brand Strategist to join the team.",
-    tags: ["Marketing"],
-  },
-  {
-    id: 8,
-    title: "Data Analyst",
-    company: "Twitter",
-    location: "San Diego, US",
-    logo: "/logos/twitter.png",
-    description:
-      "Twitter is looking for Data Analyst to help team design data solutions.",
-    tags: ["Technology"],
-  },
-];
+import { ArrowRight } from "lucide-react";
+
+
 
 const tagColors = {
   Marketing: "bg-orange-50 text-orange-400",
@@ -95,7 +13,7 @@ const tagColors = {
   Technology: "bg-red-50 text-red-500",
 };
 
-export default function FeaturedJobs() {
+export default function FeaturedJobs({ jobs }) {
   return (
     <section className="w-full min-w-0 bg-white px-3 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
       <div className="mx-auto w-full max-w-7xl">
@@ -115,11 +33,12 @@ export default function FeaturedJobs() {
         </div>
 
         <div className="grid grid-cols-2 gap-2 sm:gap-5 lg:grid-cols-4">
+          {!jobs.length && <p className="col-span-2 py-6 text-slate-500">No jobs published yet.</p>}
           {jobs.map((job) => {
-            const Logo = job.logo;
+            const Logo = (job.demo && demoLogos[job.company]) || job.logo;
 
             return (
-              <div
+              <Link href={`/jobs/${job.id}`}
                 key={job.id}
                 className="flex min-w-0 flex-col border border-slate-200 bg-white p-2.5 transition-all duration-300 hover:-translate-y-1 hover:border-indigo-600 hover:shadow-lg sm:min-h-64 sm:p-4"
               >
@@ -127,13 +46,7 @@ export default function FeaturedJobs() {
 
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center sm:h-9 sm:w-9">
                     {typeof Logo === "string" ? (
-                      <Image
-                        src={Logo}
-                        alt={job.company}
-                        width={36}
-                        height={36}
-                        className="h-7 w-7 object-contain sm:h-9 sm:w-9"
-                      />
+                      <span className="text-2xl font-bold text-indigo-600">{Logo}</span>
                     ) : (
                       <Logo
                         className="text-2xl text-blue-600 sm:text-3xl"
@@ -143,7 +56,7 @@ export default function FeaturedJobs() {
                   </div>
 
                   <span className="shrink-0 whitespace-nowrap border border-indigo-500 px-1 py-1 text-[9px] text-indigo-600 sm:px-2 sm:text-xs">
-                    Full Time
+                    {job.type}
                   </span>
                 </div>
 
@@ -160,7 +73,7 @@ export default function FeaturedJobs() {
                 </p>
 
                 <div className="mt-auto flex flex-wrap gap-1 sm:gap-2">
-                  {job.tags.map((tag) => (
+                  {job.categories.map((tag) => (
                     <span
                       key={tag}
                       className={`rounded-full px-2 py-1 text-[9px] font-medium sm:px-3 sm:text-xs ${tagColors[tag]}`}
@@ -169,7 +82,7 @@ export default function FeaturedJobs() {
                     </span>
                   ))}
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>

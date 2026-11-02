@@ -1,34 +1,10 @@
 "use client";
 
-// Place this file at: components/dashboard/DashboardFindJobs.jsx
-// Client component: search, filters, sort and pagination all run here.
-//
-// WHY THIS PAGE EXISTS:
-//   The sidebar used to link Find Jobs to /jobs -- the PUBLIC page with
-//   Navbar/Footer. This is the DASHBOARD version (screenshot 2.4):
-//   it lives inside app/dashboard/layout.jsx, so it keeps the dashboard
-//   sidebar and has NO Navbar/Footer. The public /jobs page is untouched
-//   and still works if you open it directly.
-//
-// DATA: it imports the SAME 12 jobs from @/lib/jobs that your public
-// Find Jobs page and the job detail page use. No jobs are copied here,
-// so editing lib/jobs.js updates both pages at once. If a job in your
-// lib/jobs.js is missing a field (logo, applicants, ...), this page
-// falls back gracefully instead of crashing.
-//
-// DIFFERENCES FROM THE SCREENSHOT, ON PURPOSE:
-//   - Filter counts, "Showing X results" and pagination are computed
-//     from your real 12 jobs, not the screenshot's numbers (73 results,
-//     33 pages, $ salary ranges). Your jobs use € salary ranges, so
-//     the Salary Range filter uses those.
-//   - Job titles link to /dashboard/jobs/{id} -- the dashboard detail
-//     page (screenshot 2.6), so a click stays inside the dashboard
-//     sidebar. The public detail page at /jobs/{id} is untouched.
-//   - Apply is local state only (like the public page). It does NOT
-//     save to MongoDB yet -- connect it to POST /api/applications next.
+// Dashboard job search uses the published jobs passed by its server route.
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { demoLogos } from "@/lib/catalog-logos";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import {
   ArrowLeft,
@@ -42,9 +18,9 @@ import {
   SlidersHorizontal,
   X,
 } from "lucide-react";
-import { jobs } from "@/lib/jobs";
 
-const filters = [
+
+const filterDefinitions = [
   { title: "Type of Employment", field: "type", options: ["Full-Time", "Part-Time", "Remote", "Internship", "Contract"] },
   { title: "Categories", field: "category", options: ["Design", "Sales", "Marketing", "Business", "Human Resource", "Finance", "Engineering", "Technology"] },
   { title: "Job Level", field: "level", options: ["Entry Level", "Mid Level", "Senior Level", "Director"] },
@@ -54,7 +30,7 @@ const filters = [
 const popularTerms = ["UI Designer", "UX Researcher", "Android", "Admin"];
 
 function JobLogo({ job }) {
-  const Logo = job.logo;
+  const Logo = (job.demo && demoLogos[job.company]) || job.logo;
   if (!Logo) {
     return (
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-2xl font-extrabold text-indigo-600">
@@ -72,7 +48,7 @@ function JobLogo({ job }) {
   return <Logo className={`h-10 w-10 shrink-0 text-3xl ${job.logoColor || "text-indigo-600"}`} aria-label={job.company} />;
 }
 
-function FilterGroup({ group, selected, onToggle }) {
+function FilterGroup({ group, selected, onToggle, jobs }) {
   const [expanded, setExpanded] = useState(true);
   return (
     <div className="border-b border-slate-100 pb-5 last:border-0">
@@ -121,7 +97,8 @@ function pageNumbers(current, total) {
   return out;
 }
 
-export default function DashboardFindJobs() {
+export default function DashboardFindJobs({ jobs }) {
+  const filters = useMemo(() => filterDefinitions.map((group) => ({ ...group, options: [...new Set(jobs.flatMap((job) => group.field === "type" ? job.employment : group.field === "category" ? job.categories : [job[group.field]]))] })), [jobs]);
   const [keyword, setKeyword] = useState("");
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("");
@@ -134,7 +111,6 @@ export default function DashboardFindJobs() {
   // opens like the grid screenshot, and the list icon switches back.
   const [view, setView] = useState("grid");
   const [page, setPage] = useState(1);
-  const [applied, setApplied] = useState([]);
   const pageSize = 7;
 
   const toggleFilter = (field, value) => {
@@ -164,14 +140,14 @@ export default function DashboardFindJobs() {
         matchesTerm &&
         matchesLocation &&
         filters.every(
-          ({ field }) => !(selected[field] || []).length || selected[field].includes(job[field])
+          ({ field }) => !(selected[field] || []).length || (field === "type" ? job.employment.some((type) => selected[field].includes(type)) : field === "category" ? job.categories.some((category) => selected[field].includes(category)) : selected[field].includes(job[field]))
         )
       );
     });
     if (sort === "az") list.sort((a, b) => a.title.localeCompare(b.title));
     if (sort === "company") list.sort((a, b) => a.company.localeCompare(b.company));
     return list;
-  }, [search, location, selected, sort]);
+  }, [jobs, search, location, selected, sort, filters]);
 
   const totalPages = Math.max(1, Math.ceil(results.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -248,7 +224,7 @@ export default function DashboardFindJobs() {
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[230px_minmax(0,1fr)] lg:gap-12">
         <aside className="hidden space-y-6 lg:block" aria-label="Job filters">
           {filters.map((group) => (
-            <FilterGroup key={group.field} group={group} selected={selected} onToggle={toggleFilter} />
+            <FilterGroup jobs={jobs} key={group.field} group={group} selected={selected} onToggle={toggleFilter} />
           ))}
           <button onClick={clearFilters} className="text-sm font-semibold text-indigo-600">
             Clear all filters
@@ -314,7 +290,6 @@ export default function DashboardFindJobs() {
           <div className={view === "grid" ? "grid gap-4 sm:grid-cols-2 xl:grid-cols-3" : "space-y-3"}>
             {pagedJobs.map((job) => {
               const applicants = job.applicants || 0;
-              const isApplied = applied.includes(job.id);
 
               // GRID CARD -- exactly like the grid screenshot, and
               // different from the list card on purpose:
@@ -322,7 +297,7 @@ export default function DashboardFindJobs() {
               //   title (truncated, one line, like the screenshot)
               //   company · location (truncated, like "Berlin, Germ...")
               //   2 pills: category (orange outline) + level (indigo)
-              //   green progress bar + "X applied of 10 capacity"
+              //   green progress bar + "X applications"
               //   NO Apply button in grid -- the screenshot has none;
               //   Apply lives on the list card and on /dashboard/jobs/{id}.
               // NOTE on the screenshot's 2nd pill: it says "Design" on
@@ -342,7 +317,7 @@ export default function DashboardFindJobs() {
                 return (
                   <article
                     key={job.id}
-                    className="flex min-w-0 flex-col border border-slate-200 bg-white p-4 transition hover:border-indigo-300 sm:p-5"
+                    className="relative flex min-w-0 flex-col border border-slate-200 bg-white p-4 transition hover:border-indigo-300 sm:p-5"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <JobLogo job={job} />
@@ -357,7 +332,7 @@ export default function DashboardFindJobs() {
                     <Link
                       href={`/dashboard/jobs/${job.id}`}
                       title={job.title}
-                      className="mt-3 block truncate text-base font-bold text-slate-800 hover:text-indigo-600"
+                      className="after:absolute after:inset-0 mt-3 block truncate text-base font-bold text-slate-800 hover:text-indigo-600"
                     >
                       {job.title}
                     </Link>
@@ -384,7 +359,7 @@ export default function DashboardFindJobs() {
                         />
                       </div>
                       <span className="mt-2 block text-xs text-slate-500">
-                        {applicants} applied of 10 capacity
+                        {applicants} applications
                       </span>
                     </div>
                   </article>
@@ -394,7 +369,7 @@ export default function DashboardFindJobs() {
               return (
                 <article
                   key={job.id}
-                  className={`min-w-0 border border-slate-200 bg-white p-3 transition hover:border-indigo-300 hover:shadow-md sm:p-4 ${
+                  className={`relative min-w-0 border border-slate-200 bg-white p-3 transition hover:border-indigo-300 hover:shadow-md sm:p-4 ${
                     view === "list"
                       ? "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
                       : "flex flex-col gap-4"
@@ -409,7 +384,7 @@ export default function DashboardFindJobs() {
                     <div className="min-w-0 flex-1">
                       <Link
                         href={`/dashboard/jobs/${job.id}`}
-                        className="block text-sm font-bold leading-snug text-slate-800 hover:text-indigo-600 sm:text-base"
+                        className="after:absolute after:inset-0 block text-sm font-bold leading-snug text-slate-800 hover:text-indigo-600 sm:text-base"
                       >
                         {job.title}
                       </Link>
@@ -467,15 +442,7 @@ export default function DashboardFindJobs() {
                         : "mt-auto pt-1"
                     }`}
                   >
-                    <button
-                      onClick={() =>
-                        setApplied((prev) => (prev.includes(job.id) ? prev : [...prev, job.id]))
-                      }
-                      disabled={isApplied}
-                      className="w-full bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700 disabled:cursor-default disabled:bg-indigo-300"
-                    >
-                      {isApplied ? "Applied" : "Apply"}
-                    </button>
+                    <Link href={`/dashboard/jobs/${job.id}`} className="relative z-10 block bg-indigo-600 px-4 py-2 text-center text-xs font-semibold text-white">View job</Link>
                     <div className="h-1.5 overflow-hidden bg-indigo-100">
                       <div
                         className="h-full bg-indigo-600"
@@ -483,7 +450,7 @@ export default function DashboardFindJobs() {
                       />
                     </div>
                     <span className="text-[10px] text-slate-500">
-                      {applicants} applied of 10 capacity
+                      {applicants} applications
                     </span>
                   </div>
                 </article>
@@ -553,7 +520,7 @@ export default function DashboardFindJobs() {
             </div>
             <div className="flex-1 space-y-6 overflow-y-auto p-4">
               {filters.map((group) => (
-                <FilterGroup key={group.field} group={group} selected={selected} onToggle={toggleFilter} />
+                <FilterGroup jobs={jobs} key={group.field} group={group} selected={selected} onToggle={toggleFilter} />
               ))}
             </div>
             <div className="flex gap-2 border-t p-4">

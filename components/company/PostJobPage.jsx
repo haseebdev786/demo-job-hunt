@@ -1,48 +1,10 @@
 "use client";
 
-// Place this file at: components/company/PostJobPage.jsx
-// Post A Job (3.15 Step 1/3 Job Information, 3.16 Step 2/3
-// Job Description, 3.17 Step 3/3 Perks & Benefit), inside the
-// company layout, same-to-same as the screenshots.
-// Stepper: Step 1/3 Job Information, Step 2/3 Job Description,
-// Step 3/3 Perks & Benefit. Top back arrow goes to the previous
-// step, or to /company/jobs from Step 1.
-// Step 1: Job Title (placeholder e.g. Software Engineer, hint
-// "At least 80 characters" as in the screenshot -- shown as a
-// hint only, NOT enforced, because a normal title like
-// "Software Engineer" is under 80 characters), Type of Employment
-// checkboxes (multiple), Salary $ min / $ max inputs with a
-// visual slider track below (dots move when the $ amounts
-// change; dragging the track itself is not wired yet -- see
-// the note in the final message), Categories multi-select
-// dropdown (chosen categories become removable pills),
-// Required Skills (+ Add Skills, pills with X, initial:
-// Graphic Design, Communication, Illustrator).
-// Step 2: Job Descriptions, Responsibilities, Who You Are,
-// Nice-To-Haves -- each with a textarea, a simple toolbar
-// (Bold / Italic / List / Link buttons, display-only formatting
-// for now -- they do not format the text yet), "Maximum 500
-// characters" and a live 0 / 500 count (maxLength enforced).
-// Step 3: Perks & Benefits -- + Add Benefit button (opens a
-// picker with the 7 perks from the job details page; already
-// added perks are disabled), perk cards with X to remove.
-// Initial perks, as in the screenshot: Full Healthcare,
-// Unlimited Vacation, Skill Development.
-// Bottom buttons: Step 1/2 = Next Step, Step 3 = Do a Review.
-// Do a Review opens a review modal with a summary of all
-// three steps and a Post Job button. Posting is DEMO only
-// for now -- it shows a success message in the modal, it is
-// NOT saved to MongoDB / lib/jobs yet, so the job will not
-// appear in Job Listing after reload. That is stated in the
-// modal, so it is not a fake success.
-// NOTE on routing: this page lives at /company/jobs/new.
-// Next.js gives a static route (/company/jobs/new) priority
-// over the dynamic route (/company/jobs/[slug]), so "new"
-// will NOT be treated as a job slug. Do not rename this
-// folder to anything else without checking that rule.
+// Company job publishing form. Jobs are saved through the authenticated API.
 
 import { useState } from "react";
 import Link from "next/link";
+import { validateJobPost } from "@/lib/job-validation";
 import { ArrowLeft, Bold, Briefcase, FileText, Gift, Italic, Link as LinkIcon, List, Plus, X } from "lucide-react";
 
 const ALL_PERKS = [
@@ -135,6 +97,10 @@ export default function PostJobPage({ companyName = "Nomad", companyInitial = "N
   const [step, setStep] = useState(1);
   const [title, setTitle] = useState("");
   const [titleError, setTitleError] = useState("");
+  const [location, setLocation] = useState("");
+  const [level, setLevel] = useState("Entry Level");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [employment, setEmployment] = useState([]);
   const [salaryMin, setSalaryMin] = useState(5000);
   const [salaryMax, setSalaryMax] = useState(22000);
@@ -151,6 +117,23 @@ export default function PostJobPage({ companyName = "Nomad", companyInitial = "N
   const [reviewOpen, setReviewOpen] = useState(false);
   const [posted, setPosted] = useState(false);
 
+  async function postJob() {
+    if (saving || posted) return;
+    setSaveError("");
+    setSaving(true);
+    try {
+      const fields = validateJobPost({ title, location, level, employment, salaryMin, salaryMax, categories, skills, description, responsibilities, whoYouAre, niceToHaves, perks });
+      const response = await fetch("/api/company/jobs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(fields) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not post the job.");
+      setPosted(result.job.id);
+    } catch (error) {
+      setSaveError(error.message || "Could not post the job. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   const salaryMinPct = Math.min(100, Math.max(0, (salaryMin / 50000) * 100));
   const salaryMaxPct = Math.min(100, Math.max(0, (salaryMax / 50000) * 100));
 
@@ -159,8 +142,8 @@ export default function PostJobPage({ companyName = "Nomad", companyInitial = "N
   }
 
   function handleNextFromStep1() {
-    if (!title.trim()) {
-      setTitleError("Job Title is required.");
+    if (!title.trim() || !location.trim() || !employment.length || !categories.length || !skills.length || salaryMin < 0 || salaryMax < salaryMin) {
+      setTitleError("Enter a title, location, employment type, category, skills and a valid salary range.");
       return;
     }
     setTitleError("");
@@ -218,10 +201,18 @@ export default function PostJobPage({ companyName = "Nomad", companyInitial = "N
                 placeholder="e.g. Software Engineer"
                 className="w-full max-w-md border border-slate-200 px-4 py-3 text-sm outline-none placeholder:text-slate-400 focus:border-indigo-500"
               />
-              <p className="mt-1 text-xs text-slate-400">At least 80 characters</p>
+              <p className="mt-1 text-xs text-slate-400">Use a clear title for one position.</p>
               {titleError && <p role="alert" className="mt-1 text-xs text-red-600">{titleError}</p>}
             </FieldRow>
 
+            <FieldRow label="Location" helper="City and country, or Remote">
+              <input value={location} onChange={(e) => setLocation(e.target.value)} maxLength={150} aria-label="Job location" className="w-full max-w-md border border-slate-200 px-4 py-3 text-sm" />
+            </FieldRow>
+            <FieldRow label="Job Level" helper="Select the experience level for this role">
+              <select value={level} onChange={(e) => setLevel(e.target.value)} aria-label="Job level" className="border border-slate-200 px-4 py-3 text-sm">
+                {["Entry Level", "Mid Level", "Senior Level", "Director"].map((value) => <option key={value}>{value}</option>)}
+              </select>
+            </FieldRow>
             <FieldRow label="Type of Employment" helper="You can select multiple type of employment">
               <div className="space-y-2.5">
                 {EMPLOYMENT_TYPES.map((type) => (
@@ -233,7 +224,7 @@ export default function PostJobPage({ companyName = "Nomad", companyInitial = "N
               </div>
             </FieldRow>
 
-            <FieldRow label="Salary" helper="Please specify the estimated salary range for the role. You can leave this blank">
+            <FieldRow label="Salary" helper="Estimated annual salary range in USD">
               <div className="max-w-md">
                 <div className="flex items-center gap-3">
                   <label className="flex flex-1 items-center gap-1 border border-slate-200 px-3 py-2 text-sm">
@@ -414,12 +405,12 @@ export default function PostJobPage({ companyName = "Nomad", companyInitial = "N
             </div>
             {posted ? (
               <div className="mt-4 border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-                <p className="font-bold">Job posted (demo).</p>
+                <p className="font-bold">Job published successfully.</p>
                 <p className="mt-1">
-                  This job was NOT saved to MongoDB yet, so it will not appear in Job Listing after reload.
-                  Saving a posted job to the database is the next step after this form.
+                  Your job is now visible to job seekers and saved in your Job Listing.
                 </p>
                 <Link href="/company/jobs" className="mt-3 inline-block font-semibold text-indigo-600">Go to Job Listing</Link>
+                <Link href={`/jobs/${posted}`} className="ml-4 mt-3 inline-block font-semibold text-indigo-600">View published job</Link>
               </div>
             ) : (
               <div className="mt-4 space-y-3 text-sm text-slate-600">
@@ -433,8 +424,9 @@ export default function PostJobPage({ companyName = "Nomad", companyInitial = "N
                 <p><span className="font-bold text-slate-800">Who You Are:</span> {whoYouAre || "(not filled)"}</p>
                 <p><span className="font-bold text-slate-800">Nice-To-Haves:</span> {niceToHaves || "(not filled)"}</p>
                 <p><span className="font-bold text-slate-800">Perks:</span> {perks.map((p) => p.title).join(", ") || "(none)"}</p>
-                <button type="button" onClick={() => setPosted(true)} className="w-full bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
-                  Post Job
+                {saveError && <p role="alert" className="text-red-600">{saveError}</p>}
+                <button type="button" onClick={postJob} disabled={saving} className="w-full bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50">
+                  {saving ? "Publishing..." : "Post Job"}
                 </button>
               </div>
             )}

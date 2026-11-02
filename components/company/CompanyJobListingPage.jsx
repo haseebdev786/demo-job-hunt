@@ -15,10 +15,10 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Calendar, ListFilter } from "lucide-react";
-import { companyJobs } from "@/lib/company-jobs-data";
+import { ListFilter } from "lucide-react";
 
-export default function CompanyJobListingPage({ companyName = "Nomad", companyInitial = "N" }) {
+
+export default function CompanyJobListingPage({ companyName = "Nomad", companyInitial = "N", companyJobs }) {
   const [statusFilter, setStatusFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
   const [showFilters, setShowFilters] = useState(false);
@@ -33,7 +33,7 @@ export default function CompanyJobListingPage({ companyName = "Nomad", companyIn
           (statusFilter === "All" || j.status === statusFilter) &&
           (typeFilter === "All" || j.jobType === typeFilter)
       ),
-    [statusFilter, typeFilter]
+    [companyJobs, statusFilter, typeFilter]
   );
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const safePage = Math.min(page, totalPages);
@@ -59,11 +59,9 @@ export default function CompanyJobListingPage({ companyName = "Nomad", companyIn
       <div className="mt-8 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Job Listing</h2>
-          <p className="mt-1 text-sm text-slate-500">Here is your jobs listing status from July 19 - July 25.</p>
+          <p className="mt-1 text-sm text-slate-500">Your published jobs and application counts.</p>
         </div>
-        <button type="button" className="flex items-center gap-2 border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600">
-          Jul 19 - Jul 25 <Calendar size={16} />
-        </button>
+
       </div>
 
       <section className="mt-6 border border-slate-200 bg-white p-6">
@@ -88,8 +86,7 @@ export default function CompanyJobListingPage({ companyName = "Nomad", companyIn
               Job Type:
               <select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }} className="border border-slate-200 bg-white px-2 py-1.5 outline-none">
                 <option value="All">All</option>
-                <option value="Fulltime">Fulltime</option>
-                <option value="Freelance">Freelance</option>
+                {[...new Set(companyJobs.map((job) => job.jobType))].map((type) => <option key={type}>{type}</option>)}
               </select>
             </label>
           </div>
@@ -125,7 +122,7 @@ export default function CompanyJobListingPage({ companyName = "Nomad", companyIn
                   <td className="px-4 py-4 text-slate-600">{job.datePosted}</td>
                   <td className="px-4 py-4 text-slate-600">{job.dueDate}</td>
                   <td className="px-4 py-4">
-                    <span className={`whitespace-nowrap border px-3 py-1 text-xs font-semibold ${job.jobType === "Fulltime" ? "border-indigo-200 bg-indigo-50 text-indigo-600" : "border-amber-200 bg-amber-50 text-amber-600"}`}>
+                    <span className={`whitespace-nowrap border px-3 py-1 text-xs font-semibold ${job.jobType === "Full-Time" ? "border-indigo-200 bg-indigo-50 text-indigo-600" : "border-amber-200 bg-amber-50 text-amber-600"}`}>
                       {job.jobType}
                     </span>
                   </td>
@@ -165,7 +162,7 @@ export default function CompanyJobListingPage({ companyName = "Nomad", companyIn
               <option value={20}>20</option>
               <option value={50}>50</option>
             </select>{" "}
-            Applicants per page
+            Jobs per page
           </p>
           <div className="flex items-center gap-1">
             <button type="button" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)} className="border border-slate-200 bg-white px-3 py-1.5 disabled:opacity-40">&lt;</button>

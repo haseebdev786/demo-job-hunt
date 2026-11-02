@@ -29,6 +29,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { demoLogos } from "@/lib/catalog-logos";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import {
   Search,
@@ -41,14 +42,14 @@ import {
   SlidersHorizontal,
   X,
 } from "lucide-react";
-import { companies, COMPANY_SIZES } from "@/lib/companies";
+import { COMPANY_SIZES } from "@/lib/companies";
 
 const PAGE_SIZE = 6;
 const popularTerms = ["Twitter", "Microsoft", "Apple", "Facebook"];
 
 function CompanyLogo({ company, small }) {
   // Dashboard + search formats: icon, or logo letter as fallback.
-  const Icon = company.icon || company.logo;
+  const Icon = (company.demo && demoLogos[company.name]) || company.icon || company.logo;
   return (
     <div
       className={`flex shrink-0 items-center justify-center rounded-lg ${
@@ -85,7 +86,7 @@ function pageNumbers(current, total) {
   return out;
 }
 
-export default function DashboardBrowseCompanies() {
+export default function DashboardBrowseCompanies({ companies }) {
   const [keyword, setKeyword] = useState("");
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("All Locations");
@@ -98,7 +99,7 @@ export default function DashboardBrowseCompanies() {
 
   const locations = useMemo(
     () => ["All Locations", ...Array.from(new Set(companies.map((c) => c.location))).sort()],
-    []
+    [companies]
   );
 
   const industries = useMemo(() => {
@@ -109,7 +110,7 @@ export default function DashboardBrowseCompanies() {
       )
     );
     return Array.from(counts.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, []);
+  }, [companies]);
 
   const sizeCounts = useMemo(() => {
     const counts = new Map();
@@ -117,7 +118,7 @@ export default function DashboardBrowseCompanies() {
       if (c.size) counts.set(c.size, (counts.get(c.size) || 0) + 1);
     });
     return counts;
-  }, []);
+  }, [companies]);
 
   const results = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -139,7 +140,7 @@ export default function DashboardBrowseCompanies() {
     if (sort === "jobs")
       return [...list].sort((a, b) => b.jobs - a.jobs || a.name.localeCompare(b.name));
     return list;
-  }, [search, selectedIndustries, selectedSizes, location, sort]);
+  }, [companies, search, selectedIndustries, selectedSizes, location, sort]);
 
   const totalPages = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -345,7 +346,7 @@ export default function DashboardBrowseCompanies() {
               {paged.map((company) => (
                 <article
                   key={company.slug || company.id}
-                  className="flex min-w-0 flex-col border border-slate-200 bg-white p-5 transition hover:border-indigo-500 hover:shadow-md"
+                  className="relative flex min-w-0 flex-col border border-slate-200 bg-white p-5 transition hover:border-indigo-500 hover:shadow-md"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <CompanyLogo company={company} />
@@ -356,7 +357,7 @@ export default function DashboardBrowseCompanies() {
                   <h3 className="mt-3 text-base font-bold">
                     <Link
                       href={`/dashboard/companies/${company.slug || company.id}`}
-                      className="hover:text-indigo-600"
+                      className="after:absolute after:inset-0 hover:text-indigo-600"
                     >
                       {company.name}
                     </Link>
