@@ -8,6 +8,8 @@ Email/password authentication uses [Better Auth](https://better-auth.com/docs/in
 - `MONGODB_URI` connects to Atlas, and `MONGODB_DB=jobhuntly` selects the application database. Keep these server-only.
 - `BETTER_AUTH_SECRET` is a private, randomly generated secret. Keep it stable across server restarts and identical across instances.
 - `BETTER_AUTH_URL` must match the application origin; use the deployed HTTPS origin in production.
+- On Vercel, set `BETTER_AUTH_URL=https://demojobhuntbyhaseeb.vercel.app` (without `/login`) in Project Settings → Environment Variables, then redeploy. Set `MONGODB_URI`, `MONGODB_DB`, and `BETTER_AUTH_SECRET` there as well; local `.env` files are not deployed by Git.
+- Auth also trusts this project's exact `VERCEL_PROJECT_PRODUCTION_URL`, `VERCEL_BRANCH_URL`, and `VERCEL_URL` domains. If a localhost auth URL was copied to Vercel, the server uses the Vercel URL instead. Keep access to Vercel System Environment Variables enabled.
 - `/signup` creates a `job-seeker` or `company` account and signs the user in. `/login` checks the selected account type. Seekers go to `/jobs`; company users go to `/companies`.
 - Passwords require 8–128 characters and are stored as hashes. Sessions use HttpOnly cookies; Remember me selects a persistent cookie with a 30-day session lifetime. Logout revokes the database session.
 - Auth records live in `user`, `account`, `session`, and `rateLimit`. Indexes protect email uniqueness and session tokens. Expired sessions are removed automatically.
