@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ThemeSync } from "@/components/ThemeSwitcher";
+import { themeScript } from "@/lib/theme";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,7 +26,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body suppressHydrationWarning className="min-h-full flex flex-col">{children}</body>
+      <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
+      <body suppressHydrationWarning className="min-h-full flex flex-col">
+        {children}
+        <ThemeSync />
+      </body>
     </html>
   );
 }

@@ -46,6 +46,7 @@ try {
   const posted = await request("/api/company/jobs", { body: payload, cookie: login.cookie });
   assert.equal(posted.status, 201, "Publish job");
   const job = posted.data.job;
+  assert.equal((await request("/api/jobs")).data.jobs.filter((item) => item.demo).length, process.env.DEMO_CATALOG_ENABLED === "false" ? 0 : 10, "Presentation demo catalog size");
   assert.equal(job.company, accounts[0].data.user.name, "Company identity must come from the session");
   assert.equal(job.companySlug, accounts[0].data.user.id);
   assert.equal((await request("/api/company/jobs", { cookie: login.cookie })).data.jobs.some((item) => item.id === job.id), true);
@@ -67,11 +68,34 @@ try {
   assert(!hiddenHtml.includes(job.description), "Other companies cannot read private job details");
   const refresh = await request("/api/company/jobs", { cookie: login.cookie });
   assert(refresh.data.jobs.some((item) => item.id === job.id), "Job survives a new request");
+  const seekerId = accounts[2].data.user.id;
+  await db.collection("applications").insertOne({ userId: seekerId, jobTitle: payload.title, company: job.company, location: payload.location, jobType: "Full-Time", status: "In Review", dateApplied: new Date() });
+  const ownDashboard = await request("/api/dashboard", { cookie: accounts[2].cookie });
+  assert.equal(ownDashboard.data.user.email, emails[2], "Dashboard uses the authenticated account");
+  assert.equal(ownDashboard.data.stats.totalApplied, 1, "Dashboard reads this user's records");
+  assert.equal((await request("/api/dashboard", { cookie: accounts[1].cookie })).data.stats.totalApplied, 0, "Other users cannot read these applications");
+  assert.equal((await request("/api/dashboard")).data.applications.length, 0, "Logged-out requests cannot read applications");
+  assert.equal((await request("/api/dashboard/settings", { body: { section: "notifications", notifications: {} } })).status, 401, "No shared anonymous settings writes");
+  await db.collection("notifications").insertMany([seekerId, accounts[1].data.user.id].map((userId) => ({ userId, text: `Notification test ${run}`, read: false, createdAt: new Date() })));
+  assert.equal((await request("/api/dashboard/notifications", { cookie: accounts[2].cookie })).data.unreadCount, 1);
+  assert.equal((await request("/api/dashboard/notifications", { body: { action: "mark-all-read" }, cookie: accounts[2].cookie })).status, 200);
+  assert.equal((await request("/api/dashboard/notifications", { cookie: accounts[1].cookie })).data.unreadCount, 1, "Mark-read affects only the signed-in user");
+  for (const path of ["/company", "/company/profile", "/company/messages", "/company/applicants", "/company/schedule", "/company/settings"]) {
+    const response = await fetch(`${base}${path}`, { headers: { Cookie: login.cookie } });
+    const html = await response.text();
+    assert.equal(response.status, 200, path);
+    assert(html.includes(accounts[0].data.user.name), `Company identity missing at ${path}`);
+    assert(!/Maria Kelly|Jake Gyll|Jan Mayer|jerome-bell/.test(html), `Sample content at ${path}`);
+  }
+  console.log("PASS: real-only catalog, per-user dashboard data, notification isolation and empty company pages.");
   console.log("PASS: company login, publish, validation, origin/role/ownership checks, MongoDB persistence, listings and detail links.");
 } finally {
   const users = await db.collection("user").find({ email: { $in: emails } }, { projection: { _id: 1 } }).toArray();
   const ids = users.flatMap((user) => [user._id, user._id.toString()]);
   if (ids.length) {
+    for (const collection of ["applications", "notifications"]) {
+      await db.collection(collection).deleteMany({ userId: { $in: ids } });
+    }
     await db.collection("jobPosts").deleteMany({ ownerUserId: { $in: users.map((user) => user._id.toString()) } });
     await db.collection("session").deleteMany({ userId: { $in: ids } });
     await db.collection("account").deleteMany({ userId: { $in: ids } });

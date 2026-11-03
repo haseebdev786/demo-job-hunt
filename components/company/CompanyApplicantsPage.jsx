@@ -37,7 +37,7 @@ function StagePill({ stage }) {
   );
 }
 
-export default function CompanyApplicantsPage({ companyName = "Nomad", companyInitial = "N" }) {
+export default function CompanyApplicantsPage({ companyName = "Your Company", companyInitial = "C" }) {
   const [view, setView] = useState("table");
   const [search, setSearch] = useState("");
   const [stageFilter, setStageFilter] = useState("All");

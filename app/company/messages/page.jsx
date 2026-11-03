@@ -11,8 +11,8 @@ export default async function CompanyMessagesPageRoute() {
   const sessionData = await getCompanySessionUser();
   return (
     <CompanyMessagesPage
-      companyName={sessionData.loggedIn ? sessionData.user.name : "Nomad"}
-      companyInitial={sessionData.loggedIn ? sessionData.user.initial : "N"}
+      companyName={sessionData.loggedIn ? sessionData.user.name : "Your Company"}
+      companyInitial={sessionData.loggedIn ? sessionData.user.initial : "C"}
     />
   );
 }

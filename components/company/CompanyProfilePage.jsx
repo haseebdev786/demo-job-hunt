@@ -14,11 +14,10 @@
 import Link from "next/link";
 import { Globe, Mail } from "lucide-react";
 import { companyProfileData } from "@/lib/company-profile-data";
-import { demoCompanyJobHref } from "@/lib/demo-links";
 
-export default function CompanyProfilePage({ companyName = "Nomad", companyInitial = "N", jobs = [], publicHref = "/companies" }) {
+export default function CompanyProfilePage({ companyName = "Your Company", companyInitial = "C", jobs = [], publicHref = "/companies" }) {
   const data = companyProfileData;
-  const openJobs = [...jobs, ...data.openJobs.map((job) => ({ ...job, id: `demo-${job.title}`, demo: true }))];
+  const openJobs = jobs.filter((job) => job.status === "Live");
 
   return (
     <div className="px-4 py-8 sm:px-6 lg:px-10">
@@ -62,7 +61,7 @@ export default function CompanyProfilePage({ companyName = "Nomad", companyIniti
               ))}
             </div>
             <p className="mt-2 text-xs text-slate-400">
-              Office photos are placeholders -- replace them with real photos in public/ when you have them.
+              No office photos added yet.
             </p>
           </section>
 
@@ -103,12 +102,12 @@ export default function CompanyProfilePage({ companyName = "Nomad", companyIniti
             </div>
             <div className="mt-4 divide-y divide-slate-100">
               {openJobs.map((job) => (
-                <Link href={job.demo ? demoCompanyJobHref(job.title) : `/company/jobs/${job.id}`} key={job.id} className="flex flex-wrap items-center justify-between gap-3 py-3 hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-indigo-600">
+                <Link href={`/company/jobs/${job.id}`} key={job.id} className="flex flex-wrap items-center justify-between gap-3 py-3 hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-indigo-600">
                   <div>
                     <p className="text-sm font-bold text-slate-800">{job.title}</p>
                     <p className="text-xs text-slate-500">{job.type} - {job.location}</p>
                   </div>
-                  <p className="text-xs text-slate-500">{job.demo ? `${job.applied} applied of ${job.capacity} capacity` : `${job.applicants} applications`}</p>
+                  <p className="text-xs text-slate-500">{`${job.applicants} applications`}</p>
                 </Link>
               ))}
             </div>

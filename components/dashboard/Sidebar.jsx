@@ -24,7 +24,7 @@ import {
 
 const links = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Messages", href: "/dashboard/messages", icon: MessageSquare, badge: 1 },
+  { label: "Messages", href: "/dashboard/messages", icon: MessageSquare },
   { label: "My Applications", href: "/dashboard/applications", icon: FileText },
   // CHANGED 2026-10-30: Find Jobs now opens the DASHBOARD version at
   // /dashboard/jobs (screenshot 2.4, dashboard sidebar, no Navbar/
@@ -44,15 +44,15 @@ const settingsLinks = [
 
 function SidebarContent({ user, pathname, onNavigate }) {
   return (
-    <div className="flex h-full flex-col bg-white">
-      <Link href="/" className="flex items-center gap-2 px-6 pb-6 pt-6" onClick={onNavigate}>
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-white">
+      <Link href="/" className="flex shrink-0 items-center gap-2 px-6 pb-6 pt-6" onClick={onNavigate}>
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-sm font-black text-white">
           J
         </span>
         <span className="text-lg font-black tracking-tight text-slate-800">JobHuntly</span>
       </Link>
 
-      <nav className="flex-1 space-y-1 px-3">
+      <nav className="sidebar-scroll min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain px-3 pb-3">
         {links.map((link) => {
           const Icon = link.icon;
           const active = pathname === link.href;
@@ -100,7 +100,7 @@ function SidebarContent({ user, pathname, onNavigate }) {
         })}
       </nav>
 
-      <div className="flex items-center gap-3 border-t border-slate-100 px-6 py-4">
+      <div className="flex shrink-0 items-center gap-3 border-t border-slate-100 px-6 py-4">
         {user?.avatarUrl ? (
           <img src={user.avatarUrl} alt={user.name || "User"} className="h-10 w-10 rounded-full object-cover" />
         ) : (
@@ -134,7 +134,7 @@ export default function Sidebar({ user }) {
       </button>
 
       {/* Desktop sidebar */}
-      <aside className="hidden w-64 shrink-0 border-r border-slate-100 lg:block">
+      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 self-start border-r border-slate-100 lg:block">
         <SidebarContent user={user} pathname={pathname} />
       </aside>
 

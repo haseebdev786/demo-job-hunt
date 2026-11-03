@@ -1,39 +1,11 @@
 "use client";
 
-// Place this file at: components/company/CompanyJobDetailsPage.jsx
-// Job Detail for one job (3.10 Applicants Table View, 3.11 Pipeline
-// View, 3.12 Job Details, 3.13 Analytics), inside the company layout.
-// Header: back arrow + job title + "Design - Full-Time - 4 / 11 Hired"
-// (for Social Media Assistant; for other jobs it is built from the
-// job row: type + applicants/needs) + More Action button.
-// Tabs: Applicants | Job Details | Analytics.
-//   Applicants tab: Total Applicants: 19, Search, Filter (stage),
-//     Pipeline View / Table View toggle.
-//     Table View uses companyApplicants (19, same as All Applicants
-//     and as screenshot 3.10). Pipeline View uses pipelineApplicants
-//     (its own demo list, see lib/company-jobs-data.js -- the
-//     pipeline screenshot's counts/names do not match the table).
-//   Job Details tab: Edit Job Details button (opens an edit form
-//     modal; saving is LOCAL only for now, not saved to MongoDB),
-//     Description, Responsibilities, Who You Are, Nice-To-Haves,
-//     Perks & Benefits, About this role, Categories, Required Skills.
-//     For Social Media Assistant all of this is screenshot 3.12;
-//     for other jobs it is generated from the job row (title/type).
-//   Analytics tab: Total Views 23,564 (+5.4%), Total Applied 132,
-//     Job Listing View stats line chart (Last 7 days, tooltip on
-//     23 Jul = 243 views, like the screenshot), Traffic channel
-//     donut (Direct 48%, Social 33%, Organic 24%, Other 6% --
-//     normalised to 100% for drawing, see the data file note),
-//     Visitors by country (USA, France, Italy, Germany, Japan).
-//     Analytics values are Social Media Assistant's screenshot
-//     values for every job for now -- they are NOT per-job live
-//     analytics yet. That is stated on the Analytics tab.
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ChevronDown, ListFilter, Search, Star, X } from "lucide-react";
 import { companyApplicants } from "@/lib/company-applicants-data";
-import { pipelineApplicants, socialMediaAssistantDetail } from "@/lib/company-jobs-data";
+import { pipelineApplicants } from "@/lib/company-jobs-data";
 
 const stageStyles = {
   Interview: "border-violet-200 bg-violet-50 text-violet-600",
@@ -52,14 +24,12 @@ function StagePill({ stage }) {
   );
 }
 
-// Simple SVG line chart: points joined with a smooth-ish polyline,
-// dots on each point, tooltip on the 23 Jul point (243 views).
 function LineChart({ data }) {
   const width = 600;
   const height = 200;
   const max = Math.max(...data.map((d) => d.views), 1);
   const points = data.map((d, i) => ({
-    x: 20 + (i / (data.length - 1)) * (width - 40),
+    x: 20 + (i / Math.max(data.length - 1, 1)) * (width - 40),
     y: height - 20 - (d.views / max) * (height - 40),
     ...d,
   }));
@@ -92,7 +62,6 @@ function LineChart({ data }) {
   );
 }
 
-// Donut chart: segments normalised to 100% (screenshot percents sum to 111%).
 function DonutChart({ data }) {
   const total = data.reduce((sum, d) => sum + d.percent, 0);
   const radius = 60;
@@ -123,27 +92,15 @@ function DonutChart({ data }) {
   );
 }
 
-export default function CompanyJobDetailsPage({ job, companyName = "Nomad", initialTab = "applicants" }) {
-  const isSMA = job.slug === "social-media-assistant";
-  const detail = isSMA
-    ? socialMediaAssistantDetail
-    : {
-        description: `${job.role} is an open role at ${companyName}. Full description for this demo job is not in the screenshots -- replace it in lib/company-jobs-data.js with real job details.`,
-        responsibilities: ["Own the day-to-day work for this role", "Collaborate with the team on delivery", "Report progress to the hiring manager"],
-        whoYouAre: ["You have relevant experience for this role", "You are detail-oriented and a team player"],
-        niceToHaves: ["Relevant portfolio", "Strong communication skills"],
-        perks: socialMediaAssistantDetail.perks,
-        aboutRole: {
-          applied: `${job.needs} needs`,
-          applyBefore: job.dueDate,
-          jobPostedOn: job.datePosted,
-          jobType: job.jobType,
-          salary: "Not specified",
-        },
-        categories: ["Design"],
-        requiredSkills: [job.role],
-        analytics: socialMediaAssistantDetail.analytics,
-      };
+export default function CompanyJobDetailsPage({ job, companyName = "Your Company", initialTab = "applicants" }) {
+  const lines = (value) => Array.isArray(value) ? value : (value || "").split("\n").filter(Boolean);
+  const detail = {
+    description: job.description || "", responsibilities: lines(job.responsibilities),
+    whoYouAre: lines(job.whoYouAre), niceToHaves: lines(job.niceToHaves),
+    perks: job.perks || [], categories: job.categories || [], requiredSkills: job.skills || [],
+    aboutRole: { applied: job.applicants || 0, applyBefore: job.dueDate, jobPostedOn: job.datePosted, jobType: job.jobType, salary: job.salary || "Not specified" },
+    analytics: { totalViews: 0, totalViewsChange: "0%", totalApplied: job.applicants || 0, trafficChannel: [], viewStats: [], visitorsByCountry: [] },
+  };
 
   const [tab, setTab] = useState(initialTab);
   const [applicantView, setApplicantView] = useState("table");
@@ -233,9 +190,6 @@ export default function CompanyJobDetailsPage({ job, companyName = "Nomad", init
 
           {applicantView === "pipeline" ? (
             <div>
-              <p className="mt-2 text-xs text-slate-400">
-                Pipeline list is its own demo list (see lib/company-jobs-data.js) -- it does not match the Table View total of 19, just like the screenshots do not agree.
-              </p>
               <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
                 {pipelineStages.map((stage) => {
                   const cards = pipelineApplicants.filter((a) => a.stage === stage);

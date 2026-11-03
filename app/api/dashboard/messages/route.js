@@ -1,14 +1,3 @@
-// Place this file at: app/api/dashboard/messages/route.js
-// GET  /api/dashboard/messages -> the same data the Messages page renders.
-// POST /api/dashboard/messages -> save a reply. Body:
-//   { "conversationId": "<conversation id>", "text": "Hello..." }
-// It inserts one document into `messages` (sender "you") and updates
-// that conversation's lastMessage / lastMessageAt, so the list and the
-// chat both update from MongoDB on the next load.
-//
-// NEXT 16: no `export const dynamic = "force-dynamic"` here either --
-// `await connection()` is the replacement (see the Messages page).
-
 import { NextResponse, connection } from "next/server";
 import { getMessagesData, getCurrentUserId } from "@/lib/messages-data";
 import { getDb } from "@/lib/mongodb";
@@ -40,7 +29,8 @@ export async function POST(request) {
     );
   }
 
-  const userId = getCurrentUserId();
+  const userId = await getCurrentUserId();
+  if (!userId) return NextResponse.json({ error: "Please log in." }, { status: 401 });
   // Conversation ids are stored as strings in `messages`, but the
   // conversation document itself uses an ObjectId. Match by string
   // comparison so a plain string id still works.

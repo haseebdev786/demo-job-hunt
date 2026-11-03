@@ -3,21 +3,13 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getJobPost } from "@/lib/job-posts";
-import { getCompanyJobBySlug } from "@/lib/company-jobs-data";
-import CompanyJobDetailsPage from "@/components/company/CompanyJobDetailsPage";
 import Loading from "../../loading";
-export default function Page({ params, searchParams }) { return <Suspense fallback={<Loading />}><Content params={params} searchParams={searchParams} /></Suspense>; }
-async function Content({ params, searchParams }) {
+export default function Page({ params }) { return <Suspense fallback={<Loading />}><Content params={params} /></Suspense>; }
+async function Content({ params }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (user.accountType !== "company") redirect("/dashboard");
   const { slug } = await params;
-  const demo = getCompanyJobBySlug(slug);
-  if (demo) {
-    const query = await searchParams;
-    const initialTab = query.tab === "details" ? "details" : "applicants";
-    return <CompanyJobDetailsPage key={`${slug}-${initialTab}`} job={demo} companyName={user.name} initialTab={initialTab} />;
-  }
   const job = await getJobPost(slug, user.id);
   if (!job) notFound();
   return <div className="space-y-6 px-6 py-8 lg:px-10">

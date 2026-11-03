@@ -1,28 +1,11 @@
 "use client";
 
-// Place this file at: components/dashboard/ProfilePage.jsx
-// Client component only for the "Show more" toggles on Experiences
-// and Educations. All profile data comes from props (read from
-// MongoDB by the server page) -- nothing is hardcoded here.
-//
-// EDIT BUTTONS: the screenshot shows Edit Profile and pencil icons
-// on About Me, Experiences, Educations, Skills, Additional Details
-// and Social Links. Those buttons are display-only in this version:
-// there is no edit form / save API yet. The next step is an edit form
-// that writes back to the `profiles` collection in MongoDB, after
-// which those buttons will open it.
 
 import { useState } from "react";
 import Link from "next/link";
+import ProfileEditor from "./ProfileEditor";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { Pencil, Plus, Mail, Phone, MapPin, Globe } from "lucide-react";
-// Brand icons (Instagram, Twitter, Facebook, LinkedIn) were REMOVED
-// from lucide-react in newer versions -- importing them from lucide
-// gives "Export Facebook doesn't exist in target module" (and then
-// the same error for Instagram / Twitter / Linkedin, one by one).
-// react-icons is already a dependency of this project (used in
-// lib/companies.js), so the social icons come from react-icons/fa
-// instead. They accept the same size={16} prop used below.
 import { FaInstagram, FaTwitter, FaFacebookF, FaLinkedinIn, FaGlobe } from "react-icons/fa";
 
 function Avatar({ name, avatarUrl, large }) {
@@ -39,14 +22,12 @@ function Avatar({ name, avatarUrl, large }) {
   );
 }
 
-function SectionHeader({ title, onEdit }) {
-  // Reference has a + (add) button AND a pencil (edit) button on every
-  // section header. Both are display-only for now, like the edit buttons.
+function SectionHeader({ title, onEdit, onAdd }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <h2 className="text-base font-bold text-slate-800">{title}</h2>
       <div className="flex items-center gap-1">
-        <button type="button" aria-label={`Add ${title}`} className="p-1 text-slate-400 hover:text-indigo-600">
+        <button type="button" onClick={onAdd || onEdit} aria-label={`Add ${title}`} className="p-1 text-slate-400 hover:text-indigo-600">
           <Plus size={16} />
         </button>
         <button
@@ -62,8 +43,6 @@ function SectionHeader({ title, onEdit }) {
   );
 }
 
-// Logo colours matching the reference: Twitter blue, GoDaddy black,
-// Harvard crimson, Toronto navy. Anything else falls back to indigo.
 function logoTileClass(name) {
   const n = (name || "").toLowerCase();
   if (n.includes("twitter")) return "bg-sky-500 text-white";
@@ -82,6 +61,7 @@ const socialIcons = {
 };
 
 export default function ProfilePage({ initialData }) {
+  const [editor, setEditor] = useState(null);
   const user = initialData.user;
   const profile = initialData.profile;
   const [showAllExperiences, setShowAllExperiences] = useState(false);
@@ -96,8 +76,16 @@ export default function ProfilePage({ initialData }) {
   const hasAnyProfileData =
     profile || experiences.length > 0 || educations.length > 0 || (initialData.skills || []).length > 0;
 
+  const sectionValues = {
+    overview: { fullName: user?.name || "", title: profile?.title || "", location: profile?.location || "", openForOpportunities: profile?.openForOpportunities || false },
+    about: { about: profile?.about || "" }, experiences, educations,
+    skills: { skills: (initialData.skills || []).join(", ") },
+    portfolios: initialData.portfolios || [], additionalDetails: { email: user?.email || "", ...additional }, socialLinks,
+  };
+
   return (
     <div className="px-4 py-8 sm:px-6 lg:px-10">
+      {editor && <ProfileEditor section={editor.section} initialValue={sectionValues[editor.section]} add={editor.add} onClose={() => setEditor(null)} />}
       {/* Header: same as Dashboard overview -- bell outside dropdown, NO Back to homepage */}
       <DashboardHeader title="My Profile" />
 
@@ -105,9 +93,7 @@ export default function ProfilePage({ initialData }) {
         <div className="mt-6 border border-amber-200 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-800">
           <p className="font-bold">MongoDB is not connected yet.</p>
           <p>
-            Set <code className="font-mono text-xs">MONGODB_URI</code> in{" "}
-            <code className="font-mono text-xs">.env.local</code> and run{" "}
-            <code className="font-mono text-xs">node scripts/seed-profile.js</code>, then reload.
+            Please refresh and try again.
             The page shows an empty state instead of a fake profile until then.
           </p>
         </div>
@@ -118,9 +104,7 @@ export default function ProfilePage({ initialData }) {
           <p className="font-bold text-slate-800">No profile yet.</p>
           <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
             {user?.name ? `Hi ${user.firstName}, your ` : "Your "}
-            profile sections will appear here once a document is saved in the{" "}
-            <code className="font-mono text-xs">profiles</code> collection in MongoDB. Run{" "}
-            <code className="font-mono text-xs">node scripts/seed-profile.js</code> for demo data.
+            profile sections will appear here when your profile details are added.
           </p>
         </div>
       )}
@@ -168,6 +152,7 @@ export default function ProfilePage({ initialData }) {
                 </div>
                 <button
                   type="button"
+                  onClick={() => setEditor({ section: "overview" })}
                   className="mt-2 border border-indigo-200 px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50"
                 >
                   Edit Profile
@@ -177,7 +162,7 @@ export default function ProfilePage({ initialData }) {
 
             {/* About Me */}
             <section className="border border-slate-200 bg-white p-5">
-              <SectionHeader title="About Me" />
+              <SectionHeader title="About Me" onEdit={() => setEditor({ section: "about" })} onAdd={() => setEditor({ section: "about", add: true })} />
               {profile?.about ? (
                 <div className="mt-3 space-y-3">
                   {profile.about.split(/\n\n+/).map((para, i) => (
@@ -191,7 +176,7 @@ export default function ProfilePage({ initialData }) {
 
             {/* Experiences */}
             <section className="border border-slate-200 bg-white p-5">
-              <SectionHeader title="Experiences" />
+              <SectionHeader title="Experiences" onEdit={() => setEditor({ section: "experiences" })} onAdd={() => setEditor({ section: "experiences", add: true })} />
               {experiences.length === 0 ? (
                 <p className="mt-3 text-sm text-slate-400">No experiences added yet.</p>
               ) : (
@@ -242,7 +227,7 @@ export default function ProfilePage({ initialData }) {
 
             {/* Educations */}
             <section className="border border-slate-200 bg-white p-5">
-              <SectionHeader title="Educations" />
+              <SectionHeader title="Educations" onEdit={() => setEditor({ section: "educations" })} onAdd={() => setEditor({ section: "educations", add: true })} />
               {educations.length === 0 ? (
                 <p className="mt-3 text-sm text-slate-400">No educations added yet.</p>
               ) : (
@@ -282,7 +267,7 @@ export default function ProfilePage({ initialData }) {
 
             {/* Skills */}
             <section className="border border-slate-200 bg-white p-5">
-              <SectionHeader title="Skills" />
+              <SectionHeader title="Skills" onEdit={() => setEditor({ section: "skills" })} onAdd={() => setEditor({ section: "skills", add: true })} />
               {(initialData.skills || []).length === 0 ? (
                 <p className="mt-3 text-sm text-slate-400">No skills added yet.</p>
               ) : (
@@ -301,7 +286,7 @@ export default function ProfilePage({ initialData }) {
 
             {/* Portfolios */}
             <section className="border border-slate-200 bg-white p-5">
-              <SectionHeader title="Portfolios" />
+              <SectionHeader title="Portfolios" onEdit={() => setEditor({ section: "portfolios" })} onAdd={() => setEditor({ section: "portfolios", add: true })} />
               {(initialData.portfolios || []).length === 0 ? (
                 <p className="mt-3 text-sm text-slate-400">No portfolios added yet.</p>
               ) : (
@@ -319,7 +304,7 @@ export default function ProfilePage({ initialData }) {
                           {(item.title || "?").charAt(0)}
                         </div>
                       )}
-                      <p className="mt-2 text-xs font-medium leading-4 text-slate-700">{item.title}</p>
+                      <p className="mt-2 text-xs font-medium leading-4 text-slate-700">{item.url ? <a href={item.url} target="_blank" rel="noreferrer" className="text-indigo-600">{item.title}</a> : item.title}</p>
                     </div>
                   ))}
                 </div>
@@ -330,7 +315,7 @@ export default function ProfilePage({ initialData }) {
           {/* Right column */}
           <div className="space-y-6">
             <section className="border border-slate-200 bg-white p-5">
-              <SectionHeader title="Additional Details" />
+              <SectionHeader title="Additional Details" onEdit={() => setEditor({ section: "additionalDetails" })} onAdd={() => setEditor({ section: "additionalDetails", add: true })} />
               <ul className="mt-3 space-y-3 text-sm text-slate-600">
                 {(additional.email || user?.email) && (
                   <li className="flex items-center gap-2">
@@ -363,7 +348,7 @@ export default function ProfilePage({ initialData }) {
             </section>
 
             <section className="border border-slate-200 bg-white p-5">
-              <SectionHeader title="Social Links" />
+              <SectionHeader title="Social Links" onEdit={() => setEditor({ section: "socialLinks" })} onAdd={() => setEditor({ section: "socialLinks", add: true })} />
               {socialLinks.length === 0 ? (
                 <p className="mt-3 text-sm text-slate-400">No social links added yet.</p>
               ) : (

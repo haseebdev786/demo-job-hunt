@@ -24,6 +24,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDown, LayoutDashboard, LogOut, User } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import ThemeSwitcher from "@/components/ThemeSwitcher";
 
 function Avatar({ name, image, size }) {
   const cls = size === "large" ? "h-14 w-14 text-lg" : "h-9 w-9 text-sm";
@@ -166,6 +167,11 @@ export default function AuthNavLinks({ onNavigate, compact = false }) {
                 </Link>
               );
             })}
+          </div>
+
+          <div className="border-t border-slate-100 px-5 py-4">
+            <p className="mb-3 text-xs font-semibold text-slate-500">Theme</p>
+            <ThemeSwitcher />
           </div>
 
           <div className="border-t border-slate-100 px-5 py-4">

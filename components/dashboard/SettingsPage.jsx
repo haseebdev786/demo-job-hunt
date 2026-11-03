@@ -1,40 +1,11 @@
 "use client";
 
-// Place this file at: components/dashboard/SettingsPage.jsx
-// Tabs (2.9 / 2.10 / 2.11) are tabs on ONE page, /dashboard/settings,
-// not separate routes -- exactly like the reference screenshots.
-// All initial values come from props (read from MongoDB by the server
-// page via lib/settings-data.js) -- nothing is hardcoded here.
-//
-// WHAT ACTUALLY SAVES, AND WHAT DOES NOT (read this before testing):
-//   - My Profile -> Save Profile: REAL. Updates users (name, email)
-//     and profiles (phone) and settings (dateOfBirth, gender,
-//     accountType) in MongoDB via POST /api/dashboard/settings.
-//   - Login Details -> Update Email: REAL. Updates users.email and
-//     marks it unverified (a new email is not verified until a
-//     verification flow exists -- see below).
-//   - Notifications -> Update Email button (that is the button text
-//     in the reference screenshot, kept as-is): REAL. Updates
-//     settings.notifications in MongoDB.
-//   - Login Details -> Change Password: NOT REAL YET. There is no
-//     login/password system connected to this project (signup/login
-//     forms are demo, users have no stored password hash), so there
-//     is no old password to check and no safe place to store a new
-//     one. The API returns an honest error and the UI shows it,
-//     instead of pretending the password changed.
-//   - Close Account: NOT REAL YET, on purpose. Deleting a user's
-//     data needs a confirmed, logged-in account owner. The button
-//     asks for confirmation and then shows the honest "not enabled
-//     yet" message -- it deletes NOTHING.
-//   - Profile Photo upload box: preview only. Selecting a file shows
-//     a local preview. There is no file-storage backend connected
-//     (no upload API / Cloudinary / S3), so Save does NOT upload the
-//     photo. To change the photo for real today, set avatarUrl in
-//     MongoDB (users collection) to an image URL.
 
 import { useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
+import { prepareProfilePhoto } from "@/lib/profile-photo";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { CheckCircle2, ImagePlus, Info } from "lucide-react";
 
@@ -70,6 +41,8 @@ const inputClass =
   "w-full border border-slate-300 px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-500";
 
 export default function SettingsPage({ initialData }) {
+  const router = useRouter();
+  const { refetch } = authClient.useSession();
   // ?tab=login (from the navbar "Change Password" link) opens the
   // Login Details tab directly, instead of always opening My Profile.
   // Valid values: profile | login | notifications. Anything else
@@ -93,6 +66,7 @@ export default function SettingsPage({ initialData }) {
   const [accountType, setAccountType] = useState(personal.accountType || "jobSeeker");
   const [photoPreview, setPhotoPreview] = useState("");
   const photoInputRef = useRef(null);
+  const [preparingPhoto, setPreparingPhoto] = useState(false);
 
   // Login Details form state
   const [newEmail, setNewEmail] = useState("");
@@ -131,6 +105,7 @@ export default function SettingsPage({ initialData }) {
 
   async function handleSaveProfile(e) {
     e.preventDefault();
+    if (preparingPhoto || saving) return;
     if (!fullName.trim()) {
       setMessage({ type: "error", text: "Full Name is required." });
       return;
@@ -142,18 +117,12 @@ export default function SettingsPage({ initialData }) {
       dateOfBirth,
       gender,
       accountType,
+      ...(photoPreview ? { photo: photoPreview } : {}),
     });
-    // Reload to show the saved server values -- except when a photo
-    // was previewed, in which case keep the message visible (the
-    // preview will disappear on reload, which is exactly the point:
-    // it was never uploaded).
-    if (ok && photoPreview) {
-      setMessage({
-        type: "ok",
-        text: "Profile saved. Note: the selected photo was only previewed -- photo upload needs a storage backend (see the note at the top of this file). Set avatarUrl in MongoDB to change the photo for real.",
-      });
-    } else if (ok) {
-      window.location.reload();
+    if (ok) {
+      await refetch();
+      router.refresh();
+      setPhotoPreview("");
     }
   }
 
@@ -166,7 +135,8 @@ export default function SettingsPage({ initialData }) {
     const ok = await postSettings("login-email", { newEmail: newEmail.trim() });
     if (ok) {
       setNewEmail("");
-      window.location.reload();
+      await refetch();
+      router.refresh();
     }
   }
 
@@ -196,11 +166,16 @@ export default function SettingsPage({ initialData }) {
     postSettings("close", {});
   }
 
-  function handlePhotoSelect(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPhotoPreview(URL.createObjectURL(file));
+  async function selectPhoto(file) {
+    if (!file || saving || preparingPhoto) return;
+    setPreparingPhoto(true);
+    setMessage(null);
+    try { setPhotoPreview(await prepareProfilePhoto(file)); }
+    catch (error) { setMessage({ type: "error", text: error.message || "Could not read this image." }); }
+    finally { setPreparingPhoto(false); }
   }
+
+  function handlePhotoSelect(e) { selectPhoto(e.target.files?.[0]); e.target.value = ""; }
 
   const user = initialData.user;
 
@@ -213,10 +188,7 @@ export default function SettingsPage({ initialData }) {
         <div className="mt-6 border border-amber-200 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-800">
           <p className="font-bold">MongoDB is not connected yet.</p>
           <p>
-            Set <code className="font-mono text-xs">MONGODB_URI</code> in{" "}
-            <code className="font-mono text-xs">.env</code> or{" "}
-            <code className="font-mono text-xs">.env.local</code> and run{" "}
-            <code className="font-mono text-xs">node scripts/seed-settings.js</code>, then reload.
+            Please refresh and try again.
             The forms below show empty values instead of fake data until then.
           </p>
         </div>
@@ -226,10 +198,7 @@ export default function SettingsPage({ initialData }) {
         <div className="mt-6 border border-slate-200 bg-white px-5 py-8 text-center">
           <p className="font-bold text-slate-800">No account yet.</p>
           <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
-            Settings appear here once a user document is saved in the{" "}
-            <code className="font-mono text-xs">users</code> collection in MongoDB. Run{" "}
-            <code className="font-mono text-xs">node scripts/seed-dashboard.js</code> and{" "}
-            <code className="font-mono text-xs">node scripts/seed-settings.js</code> for demo data.
+            Log in to view and update your account settings.
           </p>
         </div>
       )}
@@ -289,18 +258,21 @@ export default function SettingsPage({ initialData }) {
                   <Avatar name={user.name} avatarUrl={user.avatarUrl} previewUrl={photoPreview} />
                   <button
                     type="button"
+                    disabled={saving || preparingPhoto}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={(event) => { event.preventDefault(); selectPhoto(event.dataTransfer.files?.[0]); }}
                     onClick={() => photoInputRef.current?.click()}
                     className="flex flex-col items-center justify-center gap-1 border border-dashed border-indigo-300 px-6 py-4 text-xs text-indigo-600 hover:bg-indigo-50"
                   >
                     <ImagePlus size={18} />
                     <span className="font-semibold">Click to replace or drag and drop</span>
-                    <span className="text-slate-400">SVG, PNG, JPG or GIF (max. 400 x 400px)</span>
-                    {photoPreview && <span className="text-emerald-600">Photo selected (preview only)</span>}
+                    <span className="text-slate-400">PNG, JPG, WebP or GIF (up to 5 MB)</span>
+                    {photoPreview && <span className="text-emerald-600">Photo ready - click Save Profile</span>}
                   </button>
                   <input
                     ref={photoInputRef}
                     type="file"
-                    accept=".svg,.png,.jpg,.jpeg,.gif"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
                     onChange={handlePhotoSelect}
                     className="hidden"
                     aria-label="Choose profile photo"
@@ -313,7 +285,7 @@ export default function SettingsPage({ initialData }) {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="sm:col-span-2">
                     <FieldLabel required>Full Name</FieldLabel>
-                    <input value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputClass} placeholder="Jake Gyll" />
+                    <input value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputClass} placeholder="Full name" />
                   </div>
                   <div>
                     <FieldLabel required>Phone Number</FieldLabel>
@@ -321,7 +293,7 @@ export default function SettingsPage({ initialData }) {
                   </div>
                   <div>
                     <FieldLabel required>Email</FieldLabel>
-                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} placeholder="jakegyll@email.com" />
+                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} placeholder="you@example.com" />
                   </div>
                   <div>
                     <FieldLabel required>Date of Birth</FieldLabel>
@@ -380,7 +352,7 @@ export default function SettingsPage({ initialData }) {
               <div className="mt-8 flex justify-end border-t border-slate-200 pt-6">
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || preparingPhoto}
                   className="bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Save Profile"}

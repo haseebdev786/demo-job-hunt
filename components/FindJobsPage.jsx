@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { demoLogos } from "@/lib/catalog-logos";
+import { jobFilters as filters, matchesJobFilter } from "@/lib/job-filters";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -13,15 +13,10 @@ import {
 
 
 
-const filterDefinitions = [
-  { title: "Type of Employment", field: "type", options: ["Full-Time", "Part-Time", "Remote", "Internship", "Contract"] },
-  { title: "Categories", field: "category", options: ["Design", "Sales", "Marketing", "Business", "Human Resource", "Finance", "Engineering", "Technology"] },
-  { title: "Job Level", field: "level", options: ["Entry Level", "Mid Level", "Senior Level", "Director"] },
-  { title: "Salary Range", field: "salary", options: ["€0 - €30k", "€30k - €60k", "€60k - €100k", "€100k+"] },
-];
+
 
 function JobLogo({ job }) {
-  const Logo = (job.demo && demoLogos[job.company]) || job.logo;
+  const Logo = job.logo;
   return (
     <div className="flex h-10 w-10 shrink-0 items-center justify-center sm:h-12 sm:w-12">
       {typeof Logo === "string" ? (
@@ -44,7 +39,7 @@ function FilterGroup({ group, selected, onToggle, jobs }) {
       {expanded && (
         <div className="space-y-3">
           {group.options.map((option) => {
-            const count = jobs.filter((job) => job[group.field] === option).length;
+            const count = jobs.filter((job) => matchesJobFilter(job, group.field, option)).length;
             return (
               <label key={option} className="flex cursor-pointer items-center gap-2.5 text-xs text-slate-500">
                 <input type="checkbox" className="h-4 w-4 cursor-pointer accent-indigo-600" checked={(selected[group.field] || []).includes(option)} onChange={() => onToggle(group.field, option)} />
@@ -68,7 +63,6 @@ export default function FindJobsPage({ jobs, query = {}, dashboard = false }) {
   const [view, setView] = useState("list");
   const [page, setPage] = useState(1);
   const pageSize = 7;
-  const filters = useMemo(() => filterDefinitions.map((group) => group.field === "salary" ? { ...group, options: [...new Set(jobs.map((job) => job.salary))] } : group), [jobs]);
 
   const toggleFilter = (field, value) => {
     setSelected((prev) => {
@@ -84,12 +78,12 @@ export default function FindJobsPage({ jobs, query = {}, dashboard = false }) {
     const list = jobs.filter((job) => {
       const matchesTerm = !term || `${job.title} ${job.company} ${job.category}`.toLowerCase().includes(term);
       const matchesLocation = !loc || job.location.toLowerCase().includes(loc);
-      return matchesTerm && matchesLocation && filters.every(({ field }) => !(selected[field] || []).length || (field === "type" ? job.employment.some((type) => selected[field].includes(type)) : field === "category" ? job.categories.some((category) => selected[field].includes(category)) : selected[field].includes(job[field])));
+      return matchesTerm && matchesLocation && filters.every(({ field }) => !(selected[field] || []).length || selected[field].some((option) => matchesJobFilter(job, field, option)));
     });
     if (sort === "az") list.sort((a, b) => a.title.localeCompare(b.title));
     if (sort === "company") list.sort((a, b) => a.company.localeCompare(b.company));
     return list;
-  }, [jobs, search, location, selected, sort, filters]);
+  }, [jobs, search, location, selected, sort]);
 
   const totalPages = Math.max(1, Math.ceil(results.length / pageSize));
   const currentPage = Math.min(page, totalPages);

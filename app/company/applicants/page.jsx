@@ -9,8 +9,8 @@ export default async function CompanyApplicantsPageRoute() {
   const sessionData = await getCompanySessionUser();
   return (
     <CompanyApplicantsPage
-      companyName={sessionData.loggedIn ? sessionData.user.name : "Nomad"}
-      companyInitial={sessionData.loggedIn ? sessionData.user.initial : "N"}
+      companyName={sessionData.loggedIn ? sessionData.user.name : "Your Company"}
+      companyInitial={sessionData.loggedIn ? sessionData.user.initial : "C"}
     />
   );
 }

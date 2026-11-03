@@ -1,16 +1,5 @@
 "use client";
 
-// Place this file at: components/company/CompanyMessagesPage.jsx
-// Company Messages (3.2), inside the company layout.
-// Left: search box + conversation list (Jan Mayer first, unread dot).
-// Right: selected candidate header (avatar, name, Designer Candidate,
-// View Profile link), centre profile card, chat messages, reply box.
-// View Profile links to that candidate's Applicant Details page
-// (/company/applicants/<id>) -- for candidates who are not in the
-// applicants list, the link goes to /company/applicants instead.
-// Replies are LOCAL state only for now (not saved to MongoDB),
-// like the Help Center votes. Company name in the page header
-// comes from props (logged-in session, see the route file).
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
@@ -26,8 +15,8 @@ function Avatar({ name, size = "md" }) {
   );
 }
 
-export default function CompanyMessagesPage({ companyName = "Nomad", companyInitial = "N" }) {
-  const [selectedId, setSelectedId] = useState("jan-mayer");
+export default function CompanyMessagesPage({ companyName = "Your Company", companyInitial = "C" }) {
+  const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState("");
   const [reply, setReply] = useState("");
   const [localMessages, setLocalMessages] = useState({});
@@ -41,11 +30,11 @@ export default function CompanyMessagesPage({ companyName = "Nomad", companyInit
   }, [search]);
 
   const selected = companyConversations.find((c) => c.id === selectedId) || companyConversations[0];
-  const messages = [...selected.messages, ...(localMessages[selected.id] || [])];
+  const messages = selected ? [...selected.messages, ...(localMessages[selected.id] || [])] : [];
 
   function handleSend(e) {
     e.preventDefault();
-    if (!reply.trim()) return;
+    if (!selected || !reply.trim()) return;
     setLocalMessages((prev) => ({
       ...prev,
       [selected.id]: [...(prev[selected.id] || []), { from: "company", text: reply.trim(), time: "Just now" }],
@@ -115,7 +104,7 @@ export default function CompanyMessagesPage({ companyName = "Nomad", companyInit
         </div>
 
         {/* Chat detail */}
-        <div className="flex min-h-[500px] flex-col">
+        {selected ? <div className="flex min-h-[500px] flex-col">
           <div className="flex items-center justify-between gap-4 border-b border-slate-200 px-6 py-4">
             <div className="flex items-center gap-3">
               <Avatar name={selected.name} />
@@ -186,7 +175,7 @@ export default function CompanyMessagesPage({ companyName = "Nomad", companyInit
           <p className="border-t border-slate-100 px-4 py-2 text-[11px] text-slate-400">
             Replies here are local only for now -- they are not saved to MongoDB yet.
           </p>
-        </div>
+        </div> : <p className="p-8 text-sm text-slate-500">No conversations yet.</p>}
       </div>
     </div>
   );

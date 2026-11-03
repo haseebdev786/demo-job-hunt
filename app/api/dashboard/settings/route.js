@@ -1,35 +1,8 @@
-// Place this file at: app/api/dashboard/settings/route.js
-// GET: returns the same data as lib/settings-data.js (for debugging).
-// POST: saves one settings section. Body: { section, ...fields }
-//
-//   section "profile":      { fullName, phone, email, dateOfBirth,
-//                             gender, accountType }
-//                           -> users (name, email), profiles
-//                              (additionalDetails.phone), settings
-//                              (dateOfBirth, gender, accountType)
-//   section "login-email":   { newEmail }
-//                           -> users.email, settings.emailVerified = false
-//   section "notifications": { notifications: { applications, jobs,
-//                             recommendations } }
-//                           -> settings.notifications
-//   section "password":      NOT implemented (see below) -- returns
-//                           400 with an honest error, never a fake
-//                           success. There is no login/password system
-//                           connected yet (users have no stored password
-//                           hash, signup/login are demo), so there is
-//                           no old password to verify and no safe
-//                           place to store a new one.
-//   section "close":         NOT implemented, on purpose -- deleting
-//                           a user's data needs a confirmed, logged-in
-//                           account owner. Returns 400, deletes nothing.
-//
-// USER ID: same placeholder as the rest of the dashboard
-// (DASHBOARD_USER_ID / "demo-jake") until login is connected.
-
 import { NextResponse } from "next/server";
 import { connection } from "next/server";
 import { getDb } from "@/lib/mongodb";
 import { getSettingsData, getCurrentUserId } from "@/lib/settings-data";
+import { decodeProfilePhoto, saveProfileIdentity } from "@/lib/save-profile-identity";
 
 export async function GET() {
   await connection();
@@ -38,6 +11,7 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  if (request.headers.get("origin") !== new URL(request.url).origin) return NextResponse.json({ error: "Invalid origin." }, { status: 403 });
   await connection();
   const db = await getDb().catch(() => null);
   if (!db) {
@@ -47,24 +21,29 @@ export async function POST(request) {
     );
   }
 
-  const body = await request.json().catch(() => ({}));
+  const raw = await request.text();
+  if (raw.length > 450000) return NextResponse.json({ error: "Profile upload is too large." }, { status: 413 });
+  let body;
+  try { body = JSON.parse(raw); } catch { return NextResponse.json({ error: "Invalid profile data." }, { status: 400 }); }
+  if (!body || typeof body !== "object") return NextResponse.json({ error: "Invalid profile data." }, { status: 400 });
   const section = body.section;
-  const userId = getCurrentUserId();
+  const userId = await getCurrentUserId();
+  if (!userId) return NextResponse.json({ error: "Please log in." }, { status: 401 });
 
   if (section === "profile") {
     const fullName = String(body.fullName || "").trim();
     const email = String(body.email || "").trim();
-    if (!fullName) {
-      return NextResponse.json({ error: "Full Name is required." }, { status: 400 });
+    if (!fullName || fullName.length > 100) {
+      return NextResponse.json({ error: "Full Name is required (maximum 100 characters)." }, { status: 400 });
     }
     if (email && !email.includes("@")) {
       return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
     }
-    await db.collection("users").updateOne(
-      { userId },
-      { $set: { name: fullName, ...(email ? { email } : {}) } },
-      { upsert: true }
-    );
+    let photo;
+    try { if (body.photo) photo = decodeProfilePhoto(body.photo); }
+    catch (error) { return NextResponse.json({ error: error.message }, { status: 400 }); }
+    try { await saveProfileIdentity(db, request, userId, fullName, photo); }
+    catch { return NextResponse.json({ error: "Could not save your name or photo. Please try again." }, { status: 503 }); }
     await db.collection("profiles").updateOne(
       { userId },
       {

@@ -168,14 +168,14 @@ export default function ApplicationsHistoryFull({ initialData }) {
         <div>
           <h2 className="text-xl font-bold text-slate-800 sm:text-2xl">Keep it up, {firstName}</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Here is job applications status from July 19 - July 25.
+            Here is job applications status .
           </p>
         </div>
         <button
           type="button"
           className="flex items-center gap-2 border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600"
         >
-          Jul 19 - Jul 25
+          All time
           <Calendar size={16} />
         </button>
       </div>
@@ -286,7 +286,7 @@ export default function ApplicationsHistoryFull({ initialData }) {
             <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
               {initialData.connected
                 ? "Applications you submit will appear here automatically once they are saved in the applications collection in MongoDB."
-                : "Connect MongoDB and run node scripts/seed-dashboard.js to see applications here."}
+                : "Applications will appear here once they are saved."}
             </p>
           </div>
         ) : pageItems.length === 0 ? (

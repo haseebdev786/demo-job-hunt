@@ -1,6 +1,5 @@
 
 import Link from "next/link";
-import { demoLogos } from "@/lib/catalog-logos";
 
 import { ArrowRight } from "lucide-react";
 
@@ -35,7 +34,7 @@ export default function FeaturedJobs({ jobs }) {
         <div className="grid grid-cols-2 gap-2 sm:gap-5 lg:grid-cols-4">
           {!jobs.length && <p className="col-span-2 py-6 text-slate-500">No jobs published yet.</p>}
           {jobs.map((job) => {
-            const Logo = (job.demo && demoLogos[job.company]) || job.logo;
+            const Logo = job.logo;
 
             return (
               <Link href={`/jobs/${job.id}`}

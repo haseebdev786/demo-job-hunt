@@ -2,7 +2,7 @@
 
 // Place this file at: components/company/CompanyJobListingPage.jsx
 // Job Listing (3.9), inside the company layout.
-// Header: Job Listing + subtitle + Jul 19 - Jul 25 date button.
+// Header: Job Listing + subtitle + All time date button.
 // Job List card: Filters button (Status + Job Type dropdown),
 // table: Roles, Status (Live green / Closed red), Date Posted,
 // Due Date, Job Type (Fulltime purple / Freelance orange),
@@ -18,7 +18,7 @@ import Link from "next/link";
 import { ListFilter } from "lucide-react";
 
 
-export default function CompanyJobListingPage({ companyName = "Nomad", companyInitial = "N", companyJobs }) {
+export default function CompanyJobListingPage({ companyName = "Your Company", companyInitial = "C", companyJobs }) {
   const [statusFilter, setStatusFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
   const [showFilters, setShowFilters] = useState(false);

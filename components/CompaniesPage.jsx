@@ -3,7 +3,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { demoLogos } from "@/lib/catalog-logos";
 
 import { ArrowRight, Briefcase, Code, Globe, MapPin, PenTool, Search, ChevronDown, Wallet } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -11,7 +10,7 @@ import PostJobsBanner from "@/components/PostJobBanner";
 import Footer from "@/components/Footer";
 
 function CompanyLogo({ company, size = "normal" }) {
-  const Icon = (company.demo && demoLogos[company.name]) || company.icon || company.logo;
+  const Icon = company.icon || company.logo;
   const small = size === "small";
   return (
     <div className={`flex shrink-0 items-center justify-center rounded-lg ${small ? "h-10 w-10" : "h-12 w-12"} ${company.iconBg || "bg-transparent"}`}>

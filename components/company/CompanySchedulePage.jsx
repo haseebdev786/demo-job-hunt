@@ -1,30 +1,5 @@
 "use client";
 
-// Place this file at: components/company/CompanySchedulePage.jsx
-// My Schedule (3.14), inside the company layout, same-to-same as
-// the screenshot -- no extra sections added.
-// Left column: + Create Event, mini calendar (NOVEMBER 2021,
-// 24 selected in purple), Categories + Add Category.
-// Right: My Schedule + Today, < NOVEMBER 2021 > navigation,
-// Day / Week / Month tabs (Week default, like the screenshot),
-// week grid: SUN 23 - FRI 28, time slots GMT -07 / 1 AM - 12 AM,
-// THU 27 pink column with Holiday strip, events:
-//   MON 24, 02:00-05:00 AM: Interview with Kathryn Murphy (blue)
-//   MON 24, 08:00-09:00 AM: Interview session (blue)
-//   WED 26, 09:00-10:00 AM: Meeting with Sarah (green)
-// What IS functional (not just a picture):
-//   - Category checkboxes hide/show that category's events.
-//   - Day view shows one day's events, Month view shows the full
-//     month grid with event labels on 24 / 26 / 27, clicking a
-//     day in Month view opens that day.
-//   - Today resets to November 2021, day 24, Week view.
-//   - < > change the month label (and the mini calendar grid
-//     for other months); the week stays on days 23-28, like the
-//     screenshot's week, so the initial view stays exact.
-//   - Create Event and Add Category add items LOCAL state only
-//     for now -- they are NOT saved to MongoDB yet, so they do
-//     not persist after reload. That is stated in both modals.
-// Company name in the header comes from props (session).
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
@@ -33,9 +8,7 @@ import {
   scheduleCategories,
   scheduleEvents,
   scheduleHoliday,
-  scheduleMiniCalendarNov2021,
   scheduleTimeSlots,
-  scheduleWeekDays,
 } from "@/lib/company-schedule-data";
 
 const MONTH_NAMES = [
@@ -43,19 +16,13 @@ const MONTH_NAMES = [
   "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER",
 ];
 
-function monthLabel(offset) {
-  // Base: November 2021, offset in months.
-  const baseIndex = 10; // November
-  const total = baseIndex + offset;
-  const year = 2021 + Math.floor(total / 12);
-  const monthIndex = ((total % 12) + 12) % 12;
-  return `${MONTH_NAMES[monthIndex]} ${year}`;
+function monthLabel(offset, today) {
+  const base = new Date(today);
+  const month = new Date(base.getFullYear(), base.getMonth() + offset, 1);
+  return `${MONTH_NAMES[month.getMonth()]} ${month.getFullYear()}`;
 }
 
 function realMonthGrid(year, monthIndex) {
-  // Real calendar grid for a month (Sun first), used only when the
-  // user navigates away from November 2021. November 2021 itself
-  // uses the screenshot grid (see the data file note).
   const first = new Date(year, monthIndex, 1);
   const startDay = first.getDay();
   const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
@@ -69,18 +36,11 @@ function realMonthGrid(year, monthIndex) {
   return rows;
 }
 
-function MiniCalendar({ monthOffset, selectedDate, onSelectDate }) {
-  const label = monthLabel(monthOffset);
-  const isNov2021 = monthOffset === 0;
-  let grid;
-  if (isNov2021) {
-    grid = scheduleMiniCalendarNov2021;
-  } else {
-    const total = 10 + monthOffset;
-    const year = 2021 + Math.floor(total / 12);
-    const monthIndex = ((total % 12) + 12) % 12;
-    grid = realMonthGrid(year, monthIndex);
-  }
+function MiniCalendar({ monthOffset, selectedDate, onSelectDate, today }) {
+  const label = monthLabel(monthOffset, today);
+  const base = new Date(today);
+  const month = new Date(base.getFullYear(), base.getMonth() + monthOffset, 1);
+  const grid = realMonthGrid(month.getFullYear(), month.getMonth());
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -99,7 +59,7 @@ function MiniCalendar({ monthOffset, selectedDate, onSelectDate }) {
         {grid.map((row, ri) => (
           <div key={ri} className="grid grid-cols-7 text-center text-xs">
             {row.map((cell, ci) => {
-              const isSelected = cell.inMonth && cell.date === selectedDate && isNov2021;
+              const isSelected = cell.inMonth && cell.date === selectedDate;
               return (
                 <button
                   key={ci}
@@ -124,17 +84,28 @@ function MiniCalendar({ monthOffset, selectedDate, onSelectDate }) {
   );
 }
 
-export default function CompanySchedulePage({ companyName = "Nomad", companyInitial = "N" }) {
+export default function CompanySchedulePage({ today, companyName = "Your Company", companyInitial = "C" }) {
   const [view, setView] = useState("Week");
   const [monthOffset, setMonthOffset] = useState(0);
-  const [selectedDate, setSelectedDate] = useState(24);
+  const [selectedDate, setSelectedDate] = useState(new Date(today).getDate());
   const [categories, setCategories] = useState(scheduleCategories);
   const [events, setEvents] = useState(scheduleEvents);
   const [createOpen, setCreateOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
-  const [newEvent, setNewEvent] = useState({ title: "", categoryId: "interview", dayDate: 24, startHour: 9, endHour: 10 });
+  const [newEvent, setNewEvent] = useState({ title: "", categoryId: "interview", dayDate: new Date(today).getDate(), startHour: 9, endHour: 10 });
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryColor, setNewCategoryColor] = useState("bg-indigo-600");
+
+  const base = new Date(today);
+  const month = new Date(base.getFullYear(), base.getMonth() + monthOffset, 1);
+  const monthGrid = realMonthGrid(month.getFullYear(), month.getMonth());
+  const weekStart = new Date(month.getFullYear(), month.getMonth(), selectedDate);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const scheduleWeekDays = Array.from({ length: 7 }, (_, i) => {
+    const day = new Date(weekStart);
+    day.setDate(day.getDate() + i);
+    return { weekday: day.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase(), date: day.getDate() };
+  });
 
   const checkedCategoryIds = useMemo(
     () => new Set(categories.filter((c) => c.checked).map((c) => c.id)),
@@ -148,7 +119,7 @@ export default function CompanySchedulePage({ companyName = "Nomad", companyInit
 
   function handleToday() {
     setMonthOffset(0);
-    setSelectedDate(24);
+    setSelectedDate(new Date(today).getDate());
     setView("Week");
   }
 
@@ -197,7 +168,7 @@ export default function CompanySchedulePage({ companyName = "Nomad", companyInit
             <button type="button" onClick={() => handleMonthNav(-1)} aria-label="Previous month" className="text-slate-500 hover:text-slate-800">
               <ChevronLeft size={18} />
             </button>
-            <p className="text-sm font-bold text-slate-800">{monthLabel(monthOffset)}</p>
+            <p className="text-sm font-bold text-slate-800">{monthLabel(monthOffset, today)}</p>
             <button type="button" onClick={() => handleMonthNav(1)} aria-label="Next month" className="text-slate-500 hover:text-slate-800">
               <ChevronRight size={18} />
             </button>
@@ -225,6 +196,7 @@ export default function CompanySchedulePage({ companyName = "Nomad", companyInit
           </button>
 
           <MiniCalendar
+            today={today}
             monthOffset={monthOffset}
             selectedDate={selectedDate}
             onSelectDate={(date, delta) => {
@@ -263,7 +235,7 @@ export default function CompanySchedulePage({ companyName = "Nomad", companyInit
                   <span key={d} className="py-2">{d}</span>
                 ))}
               </div>
-              {scheduleMiniCalendarNov2021.map((row, ri) => (
+              {monthGrid.map((row, ri) => (
                 <div key={ri} className="grid grid-cols-7 border-t border-slate-100">
                   {row.map((cell, ci) => {
                     const cellEvents = cell.inMonth ? dayEvents(cell.date) : [];
@@ -296,7 +268,7 @@ export default function CompanySchedulePage({ companyName = "Nomad", companyInit
           {view === "Day" && (
             <div className="p-6">
               <p className="text-sm font-bold text-slate-800">
-                {selectedDay.weekday} {selectedDay.date} - {monthLabel(monthOffset)}
+                {selectedDay.weekday} {selectedDay.date} - {monthLabel(monthOffset, today)}
               </p>
               <div className="mt-4 space-y-3">
                 {dayEvents(selectedDate).length === 0 && (
@@ -318,7 +290,7 @@ export default function CompanySchedulePage({ companyName = "Nomad", companyInit
           {view === "Week" && (
             <div>
               {/* Week header */}
-              <div className="grid grid-cols-[64px_repeat(6,1fr)] border-b border-slate-200 text-center">
+              <div className="grid grid-cols-[64px_repeat(7,1fr)] border-b border-slate-200 text-center">
                 <span />
                 {scheduleWeekDays.map((d) => (
                   <div key={d.date} className={`py-3 ${d.date === scheduleHoliday.dayDate ? "bg-rose-50" : ""}`}>
@@ -335,7 +307,7 @@ export default function CompanySchedulePage({ companyName = "Nomad", companyInit
 
               {/* Week grid + events overlay */}
               <div className="relative">
-                <div className="grid grid-cols-[64px_repeat(6,1fr)]">
+                <div className="grid grid-cols-[64px_repeat(7,1fr)]">
                   <div>
                     {scheduleTimeSlots.map((slot, i) => (
                       <div key={slot} style={{ height: i === 0 ? 24 : hourHeight }} className="flex items-start justify-end pr-2 text-[11px] text-slate-400">
@@ -367,8 +339,8 @@ export default function CompanySchedulePage({ companyName = "Nomad", companyInit
                           key={e.id}
                           className={`absolute overflow-hidden p-2 text-white ${e.color}`}
                           style={{
-                            left: `calc(${(dayIndex / 6) * 100}% + 2px)`,
-                            width: `calc(${100 / 6}% - 4px)`,
+                            left: `calc(${(dayIndex / 7) * 100}% + 2px)`,
+                            width: `calc(${100 / 7}% - 4px)`,
                             top,
                             height,
                           }}
@@ -418,7 +390,7 @@ export default function CompanySchedulePage({ companyName = "Nomad", companyInit
                     color: cat ? cat.color : "bg-indigo-600",
                   },
                 ]);
-                setNewEvent({ title: "", categoryId: "interview", dayDate: 24, startHour: 9, endHour: 10 });
+                setNewEvent({ title: "", categoryId: "interview", dayDate: new Date(today).getDate(), startHour: 9, endHour: 10 });
                 setCreateOpen(false);
               }}
               className="mt-4 space-y-4"

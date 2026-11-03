@@ -19,13 +19,21 @@ Email/password authentication uses [Better Auth](https://better-auth.com/docs/in
 
 Company accounts publish through `/company/jobs/new`. The authenticated `/api/company/jobs` endpoint validates the form and saves it in MongoDB's `jobPosts` collection. Ownership and company name come from the session. Only that owner can see the employer's job list and detail pages.
 
-The homepage, public and dashboard job lists, job descriptions and hiring companies show the original demo catalog alongside published records through `lib/job-posts.js`. Demo fixtures remain in source files and are never inserted into MongoDB. Company dashboards also retain their demo job cards and detail previews alongside the signed-in company's own posts. Public profiles for real posts represent the publishing accounts; names are supplied by those accounts, not independently verified brands.
+The homepage, public and dashboard job lists combine published MongoDB records with a presentation catalog of 10 demo jobs across 6 demo companies. The catalog is in `lib/demo-catalog.js`, is never inserted into MongoDB, and can be disabled with `DEMO_CATALOG_ENABLED=false`. Company dashboards continue to list only the signed-in company's real posts.
 
 Run `node scripts/test-jobs.mjs` against a local server. `TEST_BASE_URL` defaults to `http://localhost:3000`. The test checks company login, publishing, validation, role/origin/ownership protection, saved data and rendered routes. It deletes only its own temporary accounts and jobs in `finally`.
 
+Run `node scripts/remove-demo-data.cjs` to remove the legacy `demo-jake` dashboard records from the configured database. This does not delete authentication accounts or real job posts.
+
+### Candidate profile
+
+Settings saves the account name and profile photo. Images are resized to at most 400 pixels in the browser and stored as bounded binary files in MongoDB's `profilePhotos` collection; `/api/avatar/[id]` serves them publicly. No local upload directory or separate storage credentials are required. The saved photo is shared by the profile, sidebar and account menu.
+
+My Profile supports adding, editing and removing experience, education, skills, portfolios and social links, plus editing the biography, title, location and contact details. `/api/dashboard/profile` validates each section and saves it only for the authenticated account.
+
 ### Functionality still in preview
 
-Job application submission and resume storage are not connected yet; the application modal explicitly says that nothing was sent. Company settings, schedule changes, messages, applicant management and analytics still contain local state or sample data. The posting form's formatting toolbar and salary drag control are display-only; text and numeric salary inputs work. These are separate from the working job publishing flow.
+Job application submission and resume storage are not connected yet; the application modal explicitly says that nothing was sent. Company settings, schedule changes, messages, applicant management and analytics still use local state or empty placeholders. The posting form's formatting toolbar and salary drag control are display-only; text and numeric salary inputs work. These are separate from the working job publishing flow.
 
 ### Validate authentication
 

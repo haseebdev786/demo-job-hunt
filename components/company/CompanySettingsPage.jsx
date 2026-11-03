@@ -1,54 +1,5 @@
 "use client";
 
-// Place this file at: components/company/CompanySettingsPage.jsx
-// Company Settings (3.18 Overview, 3.19 Social Links,
-// 3.20 Team), inside the company layout, same-to-same.
-// Tabs: Overview | Social Links | Team.
-// Overview (3.18):
-//   Basic Information: "This is company information that you
-//   can update anytime."
-//   Company Logo: logo tile + dashed "Click to replace or drag
-//   and drop SVG, PNG, JPG or GIF (max. 400 x 400px)" box.
-//   Company Details: Company Name (Nomad), Website,
-//   Location pills (England, Japan, Australia), Employee
-//   dropdown (1-50), Industry (Technology), Date Founded
-//   (31 / July / 2021 dropdowns), Tech Stack pills
-//   (HTML5, CSS3, Javascript).
-//   About Company: Description textarea with toolbar,
-//   "Maximum 500 characters" + live count (screenshot shows
-//   0 / 500 even with text filled -- that is a template
-//   inconsistency, the live count here is correct).
-// Social Links (3.19):
-//   Basic Information: "Add elsewhere links to your company
-//   profile. You can add only username without full https links."
-//   Instagram, Twitter, Facebook (prefilled, as in screenshot),
-//   Linkedin, Youtube (empty, placeholders as in screenshot).
-// Team (3.20):
-//   Basic Information: "Add team members of your company"
-//   "50 Members" (screenshot header count -- see note below),
-//   + Add Members button, grid / list view toggle.
-//   Cards, as in the screenshot: Célestin Gardinier
-//   (CEO & Co-Founder), Reynaud Colbert (Co-Founder),
-//   Arienne Lyon, Bernard Alexander, Christine Jhonson,
-//   Aaron Morgan (all Managing Director), with Instagram /
-//   LinkedIn icons.
-// Save Changes (all tabs): shows a message, LOCAL only for
-// now -- it is NOT saved to MongoDB yet, because there is no
-// company profile document / file storage wired for companies
-// yet. That is stated in the saved message, so it is not a
-// fake success. Wiring company settings to MongoDB is the
-// next step after this design page.
-// Logo upload: file picker + drag-and-drop preview only --
-// the image is NOT uploaded to any storage yet.
-// Team note: the screenshot header says "50 Members" but only
-// 6 cards are visible in it. The header here starts at 50
-// (as in the screenshot) and increments when you add a
-// member; the grid shows the 6 screenshot members plus any
-// members you add. The other 44 members are not listed in
-// the screenshot, so they are not invented here.
-// Social icons use react-icons/fa (FaInstagram, FaLinkedinIn),
-// because lucide-react no longer ships brand icons -- same
-// fix as the applicant Profile page earlier.
 
 import { useRef, useState } from "react";
 import Link from "next/link";
@@ -60,14 +11,7 @@ const TECH_OPTIONS = ["HTML5", "CSS3", "Javascript", "React", "Node.js", "Python
 const EMPLOYEE_OPTIONS = ["1 - 50", "51 - 100", "101 - 200", "201 - 500", "500+"];
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-const INITIAL_TEAM = [
-  { name: "Célestin Gardinier", role: "CEO & Co-Founder" },
-  { name: "Reynaud Colbert", role: "Co-Founder" },
-  { name: "Arienne Lyon", role: "Managing Director" },
-  { name: "Bernard Alexander", role: "Managing Director" },
-  { name: "Christine Jhonson", role: "Managing Director" },
-  { name: "Aaron Morgan", role: "Managing Director" },
-];
+const INITIAL_TEAM = [];
 
 function Toolbar() {
   return (
@@ -121,35 +65,35 @@ function PillInput({ pills, onRemove, onAdd, options, placeholder }) {
   );
 }
 
-export default function CompanySettingsPage({ companyName = "Nomad", companyInitial = "N" }) {
+export default function CompanySettingsPage({ companyName = "Your Company", companyInitial = "C" }) {
   const [tab, setTab] = useState("overview");
   const [savedMessage, setSavedMessage] = useState("");
 
   // Overview state (prefilled as in screenshot 3.18)
   const [logoPreview, setLogoPreview] = useState("");
   const [companyNameField, setCompanyNameField] = useState(companyName);
-  const [website, setWebsite] = useState("https://www.nomad.com");
-  const [locations, setLocations] = useState(["England", "Japan", "Australia"]);
-  const [employee, setEmployee] = useState("1 - 50");
-  const [industry, setIndustry] = useState("Technology");
-  const [foundDay, setFoundDay] = useState("31");
-  const [foundMonth, setFoundMonth] = useState("July");
-  const [foundYear, setFoundYear] = useState("2021");
-  const [techStack, setTechStack] = useState(["HTML5", "CSS3", "Javascript"]);
-  const [about, setAbout] = useState("Nomad is part of the Information Technology Industry. We believe travellers want to experience real life and meet local people. Nomad has 30 total employees across all of its locations and generates $1.58 million in sales.");
+  const [website, setWebsite] = useState("");
+  const [locations, setLocations] = useState([]);
+  const [employee, setEmployee] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [foundDay, setFoundDay] = useState("");
+  const [foundMonth, setFoundMonth] = useState("");
+  const [foundYear, setFoundYear] = useState("");
+  const [techStack, setTechStack] = useState([]);
+  const [about, setAbout] = useState("");
 
   // Social Links state (prefilled as in screenshot 3.19)
   const [social, setSocial] = useState({
-    Instagram: "https://www.instagram.com/nomad/",
-    Twitter: "https://twitter.com/nomad/",
-    Facebook: "https://web.facebook.com/nomad/",
+    Instagram: "",
+    Twitter: "",
+    Facebook: "",
     Linkedin: "",
     Youtube: "",
   });
 
   // Team state
   const [team, setTeam] = useState(INITIAL_TEAM);
-  const [memberCount, setMemberCount] = useState(50);
+  const [memberCount, setMemberCount] = useState(0);
   const [teamView, setTeamView] = useState("grid");
   const [memberFormOpen, setMemberFormOpen] = useState(false);
   const [newMember, setNewMember] = useState({ name: "", role: "" });

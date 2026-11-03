@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { demoLogos } from "@/lib/catalog-logos";
-import { demoPerks } from "@/lib/demo-job-content";
 
 import { ArrowRight, Building2, MapPin, Users, BriefcaseBusiness, Sparkles } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -8,18 +6,13 @@ import Footer from "@/components/Footer";
 
 
 
-const gallery = [
-  { photo: "photo-1497366216548-37526070297c", alt: "Bright shared workspace" },
-  { photo: "photo-1522071820081-009f0129c71c", alt: "People collaborating around a table" },
-  { photo: "photo-1497366811353-6870744d04b2", alt: "Open office with plants and natural light" },
-];
 
 
 
 
 
 function CompanyLogo({ company, large = false }) {
-  const Icon = (company.demo && demoLogos[company.name]) || company.icon || company.logo;
+  const Icon = company.icon || company.logo;
   return (
     <div className={`flex shrink-0 items-center justify-center ${large ? "h-24 w-24 text-6xl sm:h-32 sm:w-32 sm:text-7xl" : "h-12 w-12 text-3xl"} ${company.iconBg || company.color || "bg-indigo-50"} ${company.iconColor || "text-white"}`}>
       {typeof Icon === "string" ? <span className="font-bold">{Icon}</span> : <Icon aria-hidden="true" />}
@@ -28,7 +21,7 @@ function CompanyLogo({ company, large = false }) {
 }
 
 export default function CompanyProfilePage({ company, openJobs, dashboard = false }) {
-  const benefits = [...new Map((company.demo ? demoPerks : openJobs.flatMap((job) => job.perks)).map((perk) => [perk.title, { ...perk, icon: Sparkles }])).values()];
+  const benefits = [...new Map(openJobs.flatMap((job) => job.perks).map((perk) => [perk.title, { ...perk, icon: Sparkles }])).values()];
   const industry = company.industry || company.categories.join(" / ");
 
   return (
@@ -73,16 +66,7 @@ export default function CompanyProfilePage({ company, openJobs, dashboard = fals
             <p className="mt-4 text-sm leading-7 text-slate-600">{company.about || company.description}</p>
             <h3 className="mt-7 text-lg font-bold">Contact</h3>
             <p className="mt-3 text-sm text-slate-500">Contact information has not been added yet.</p>
-            <figure className="mt-8">
-              <div className="grid h-72 grid-cols-2 grid-rows-2 gap-3 sm:h-96">
-                {gallery.map((photo, index) => (
-                  // Existing demo photography; replace with each company's own photos when available.
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img key={photo.photo} src={`https://images.unsplash.com/${photo.photo}?auto=format&fit=crop&w=800&q=80`} alt={photo.alt} width={800} height={600} loading="lazy" className={`h-full w-full object-cover ${index === 0 ? "row-span-2" : ""}`} />
-                ))}
-              </div>
-              <figcaption className="mt-2 text-xs text-slate-500">Illustrative workspace photos.</figcaption>
-            </figure>
+
           </div>
           <aside className="space-y-8">
             <div>
@@ -106,7 +90,7 @@ export default function CompanyProfilePage({ company, openJobs, dashboard = fals
 
         <section className="mx-auto max-w-7xl border-t border-slate-100 px-4 py-12 sm:px-6 lg:px-10">
           <h2 className="text-2xl font-bold">Perks &amp; Benefits</h2>
-          <p className="mt-3 text-sm text-slate-500">Sample benefits — confirm availability in the individual job listing.</p>
+          <p className="mt-3 text-sm text-slate-500">Benefits shared in the company&apos;s job listings.</p>
           <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {benefits.map(({ icon: Icon, title, text }) => (
               <div key={title}>

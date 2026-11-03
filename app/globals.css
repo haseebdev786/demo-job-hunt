@@ -5,9 +5,16 @@
 @source "../components";
 @source "../lib";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
+  color-scheme: light;
   --background: #ffffff;
   --foreground: #171717;
+  --surface: #ffffff;
+  --surface-muted: #f8fafc;
+  --surface-raised: #f1f5f9;
+  --theme-border: #e2e8f0;
 }
 
 @theme inline {
@@ -17,15 +24,135 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #09090b;
+  --foreground: #f4f4f5;
+  --surface: #161619;
+  --surface-muted: #0e0e11;
+  --surface-raised: #242429;
+  --theme-border: #35353d;
+  --surface-card: #27272c;
+  --surface-card-hover: #303036;
+  --card-border: #45454e;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.sidebar-scroll {
+  scrollbar-width: none;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Theme selector inside the account dropdown. */
+.theme-switcher {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.25rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--foreground);
+}
+
+.theme-switcher button {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-height: 44px;
+  min-width: 76px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.theme-switcher button:hover { background: var(--surface-raised); }
+.theme-switcher button[aria-pressed="true"] { background: #4f46e5; color: #ffffff; }
+.theme-switcher button:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
+
+@media print {
+  .theme-switcher { display: none; }
+}
+
+/* Theme the existing shared palette across public pages, forms and dashboards.
+   Brand buttons, photographs and status/chart colors retain their identity. */
+@layer utilities {
+  :where([data-theme="dark"]) :is(.bg-white) { background-color: var(--surface); }
+  :where([data-theme="dark"]) :is(.bg-gray-50, .bg-slate-50, .bg-\[\#F8F8FD\], .bg-\[\#f5f7ff\]) { background-color: var(--surface-muted); }
+  :where([data-theme="dark"]) :is(.bg-gray-100, .bg-slate-100) { background-color: var(--surface-raised); }
+  :where([data-theme="dark"]) :is(.bg-slate-200) { background-color: #35353d; }
+  :where([data-theme="dark"]) :is(.bg-gray-900, .bg-slate-900) { background-color: #09090b; }
+  :where([data-theme="dark"]) :is(.bg-slate-800, .bg-gray-700) { background-color: #27272e; }
+  :where([data-theme="dark"]) :is(.text-black, .text-slate-800, .text-slate-900) { color: #f4f4f5; }
+  :where([data-theme="dark"]) :is(.text-slate-600, .text-slate-700) { color: #d4d4d8; }
+  :where([data-theme="dark"]) :is(.text-slate-400, .text-slate-500, .text-gray-400, .text-gray-500) { color: #a8a8b3; }
+  :where([data-theme="dark"]) :is(.border-gray-100, .border-gray-200, .border-slate-100, .border-slate-200, .border-slate-300) { border-color: var(--theme-border); }
+  :where([data-theme="dark"]) :is(.ring-slate-200) { --tw-ring-color: var(--theme-border); }
+  :where([data-theme="dark"]) .divide-slate-100 > :not(:last-child) { border-color: var(--theme-border); }
+  :where([data-theme="dark"]) :is(.hover\:bg-gray-100:hover, .hover\:bg-slate-100:hover, .hover\:bg-slate-50:hover) { background-color: var(--surface-raised); }
+  :where([data-theme="dark"]) :is(.hover\:text-slate-600:hover, .hover\:text-slate-700:hover, .hover\:text-slate-800:hover) { color: #ffffff; }
+  :where([data-theme="dark"]) :is(.bg-indigo-50, .bg-indigo-100, .bg-indigo-200) { background-color: color-mix(in srgb, var(--color-indigo-500) 16%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.text-indigo-500, .text-indigo-600, .text-indigo-700, .text-indigo-800) { color: var(--color-indigo-300); }
+  :where([data-theme="dark"]) :is(.border-indigo-200, .border-indigo-300) { border-color: color-mix(in srgb, var(--color-indigo-400) 45%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.bg-blue-50, .bg-blue-100, .bg-blue-200) { background-color: color-mix(in srgb, var(--color-blue-500) 16%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.text-blue-500, .text-blue-600, .text-blue-700, .text-blue-800) { color: var(--color-blue-300); }
+  :where([data-theme="dark"]) :is(.border-blue-200, .border-blue-300) { border-color: color-mix(in srgb, var(--color-blue-400) 45%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.bg-sky-50, .bg-sky-100, .bg-sky-200) { background-color: color-mix(in srgb, var(--color-sky-500) 16%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.text-sky-500, .text-sky-600, .text-sky-700, .text-sky-800) { color: var(--color-sky-300); }
+  :where([data-theme="dark"]) :is(.border-sky-200, .border-sky-300) { border-color: color-mix(in srgb, var(--color-sky-400) 45%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.bg-cyan-50, .bg-cyan-100, .bg-cyan-200) { background-color: color-mix(in srgb, var(--color-cyan-500) 16%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.text-cyan-500, .text-cyan-600, .text-cyan-700, .text-cyan-800) { color: var(--color-cyan-300); }
+  :where([data-theme="dark"]) :is(.border-cyan-200, .border-cyan-300) { border-color: color-mix(in srgb, var(--color-cyan-400) 45%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.bg-teal-50, .bg-teal-100, .bg-teal-200) { background-color: color-mix(in srgb, var(--color-teal-500) 16%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.text-teal-500, .text-teal-600, .text-teal-700, .text-teal-800) { color: var(--color-teal-300); }
+  :where([data-theme="dark"]) :is(.border-teal-200, .border-teal-300) { border-color: color-mix(in srgb, var(--color-teal-400) 45%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.bg-emerald-50, .bg-emerald-100, .bg-emerald-200) { background-color: color-mix(in srgb, var(--color-emerald-500) 16%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.text-emerald-500, .text-emerald-600, .text-emerald-700, .text-emerald-800) { color: var(--color-emerald-300); }
+  :where([data-theme="dark"]) :is(.border-emerald-200, .border-emerald-300) { border-color: color-mix(in srgb, var(--color-emerald-400) 45%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.bg-green-50, .bg-green-100, .bg-green-200) { background-color: color-mix(in srgb, var(--color-green-500) 16%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.text-green-500, .text-green-600, .text-green-700, .text-green-800) { color: var(--color-green-300); }
+  :where([data-theme="dark"]) :is(.border-green-200, .border-green-300) { border-color: color-mix(in srgb, var(--color-green-400) 45%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.bg-violet-50, .bg-violet-100, .bg-violet-200) { background-color: color-mix(in srgb, var(--color-violet-500) 16%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.text-violet-500, .text-violet-600, .text-violet-700, .text-violet-800) { color: var(--color-violet-300); }
+  :where([data-theme="dark"]) :is(.border-violet-200, .border-violet-300) { border-color: color-mix(in srgb, var(--color-violet-400) 45%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.bg-orange-50, .bg-orange-100, .bg-orange-200) { background-color: color-mix(in srgb, var(--color-orange-500) 16%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.text-orange-500, .text-orange-600, .text-orange-700, .text-orange-800) { color: var(--color-orange-300); }
+  :where([data-theme="dark"]) :is(.border-orange-200, .border-orange-300) { border-color: color-mix(in srgb, var(--color-orange-400) 45%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.bg-amber-50, .bg-amber-100, .bg-amber-200) { background-color: color-mix(in srgb, var(--color-amber-500) 16%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.text-amber-500, .text-amber-600, .text-amber-700, .text-amber-800) { color: var(--color-amber-300); }
+  :where([data-theme="dark"]) :is(.border-amber-200, .border-amber-300) { border-color: color-mix(in srgb, var(--color-amber-400) 45%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.bg-red-50, .bg-red-100, .bg-red-200) { background-color: color-mix(in srgb, var(--color-red-500) 16%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.text-red-500, .text-red-600, .text-red-700, .text-red-800) { color: var(--color-red-300); }
+  :where([data-theme="dark"]) :is(.border-red-200, .border-red-300) { border-color: color-mix(in srgb, var(--color-red-400) 45%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.bg-rose-50, .bg-rose-100, .bg-rose-200) { background-color: color-mix(in srgb, var(--color-rose-500) 16%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.text-rose-500, .text-rose-600, .text-rose-700, .text-rose-800) { color: var(--color-rose-300); }
+  :where([data-theme="dark"]) :is(.border-rose-200, .border-rose-300) { border-color: color-mix(in srgb, var(--color-rose-400) 45%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.bg-indigo-50\/60) { background-color: color-mix(in srgb, var(--color-indigo-500) 10%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.hover\:bg-indigo-50:hover, .hover\:bg-indigo-100:hover) { background-color: color-mix(in srgb, var(--color-indigo-500) 24%, var(--surface)); }
+  :where([data-theme="dark"]) :is(.hover\:text-indigo-600:hover, .hover\:text-indigo-700:hover, .hover\:text-indigo-800:hover) { color: var(--color-indigo-200); }
+  :where([data-theme="dark"]) :is(.hover\:text-red-600:hover) { color: var(--color-red-300); }
+  :where([data-theme="dark"]) :is(.ring-indigo-200) { --tw-ring-color: var(--color-indigo-400); }
+  :where([data-theme="dark"]) :is(input, textarea)::placeholder { color: #92929f; opacity: 1; }
+  :where([data-theme="dark"]) select option { background: var(--surface); color: var(--foreground); }
+  :where([data-theme="dark"]) input:-webkit-autofill { -webkit-text-fill-color: var(--foreground); box-shadow: 0 0 0 1000px var(--surface) inset; }
+  :where([data-theme="dark"]) svg [stroke="#e2e8f0"] { stroke: var(--theme-border); }
+  /* Cards and boxed panels sit above the darker page/section backgrounds. */
+  :where([data-theme="dark"]) .bg-white:is(a, article, form, .border, .shadow-sm, .shadow-lg, .shadow-xl) {
+    background-color: var(--surface-card);
+    border-color: var(--card-border);
+  }
+  :where([data-theme="dark"]) :is(a.bg-white, article.bg-white):hover {
+    background-color: var(--surface-card-hover);
+  }
 }

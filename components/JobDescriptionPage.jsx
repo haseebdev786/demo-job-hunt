@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { demoLogos } from "@/lib/catalog-logos";
 
 
 import {
@@ -19,7 +18,7 @@ import JobApplicationModal from "@/components/JobApplicationModal";
 
 
 function JobLogo({ job, large }) {
-  const Logo = (job.demo && demoLogos[job.company]) || job.logo;
+  const Logo = job.logo;
   const size = large ? "h-14 w-14 text-3xl" : "h-10 w-10 text-xl";
   return (
     <div className={`flex shrink-0 items-center justify-center rounded-lg ${size} ${job.logoBg || "bg-slate-50"}`}>
@@ -202,16 +201,7 @@ export default function JobDescriptionPage({ job, jobs = [], dashboard = false }
             </div>
             <p className="mt-4 text-sm leading-6 text-slate-500">{detail.companyAbout}</p>
           </div>
-          {job.demo && <div className="grid grid-cols-3 gap-3">
-            {[
-              ["photo-1497366216548-37526070297c", "Office"],
-              ["photo-1522071820081-009f0129c71c", "Team working together"],
-              ["photo-1497366811353-6870744d04b2", "Office space"],
-            ].map(([photo, alt]) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={photo} src={`https://images.unsplash.com/${photo}?q=80&w=800&auto=format&fit=crop`} alt={alt} width={800} height={600} loading="lazy" className="h-32 w-full object-cover" />
-            ))}
-          </div>}
+
 
         </div>
       </section>

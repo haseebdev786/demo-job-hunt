@@ -29,7 +29,6 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { demoLogos } from "@/lib/catalog-logos";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import {
   Search,
@@ -45,11 +44,11 @@ import {
 import { COMPANY_SIZES } from "@/lib/companies";
 
 const PAGE_SIZE = 6;
-const popularTerms = ["Twitter", "Microsoft", "Apple", "Facebook"];
+
 
 function CompanyLogo({ company, small }) {
   // Dashboard + search formats: icon, or logo letter as fallback.
-  const Icon = (company.demo && demoLogos[company.name]) || company.icon || company.logo;
+  const Icon = company.icon || company.logo;
   return (
     <div
       className={`flex shrink-0 items-center justify-center rounded-lg ${
@@ -87,6 +86,7 @@ function pageNumbers(current, total) {
 }
 
 export default function DashboardBrowseCompanies({ companies }) {
+  const popularTerms = companies.slice(0, 4).map((company) => company.name);
   const [keyword, setKeyword] = useState("");
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("All Locations");

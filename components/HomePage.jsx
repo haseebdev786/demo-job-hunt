@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { demoLogos } from "@/lib/catalog-logos";
 
 import Navbar from "@/components/Navbar";
 import PostJobsBanner from "@/components/PostJobBanner";
@@ -36,7 +35,6 @@ import { FaArrowRight } from "react-icons/fa6";
 import { useState } from "react";
 
 
-import { SiVodafone, SiIntel, SiTesla, SiAmd } from "react-icons/si";
 
 
 
@@ -45,42 +43,34 @@ import { SiVodafone, SiIntel, SiTesla, SiAmd } from "react-icons/si";
 const categories = [
   {
     name: "Design",
-    jobs: 235,
     icon: PenTool,
   },
   {
     name: "Sales",
-    jobs: 756,
     icon: ChartNoAxesColumnIncreasing,
   },
   {
     name: "Marketing",
-    jobs: 140,
     icon: Megaphone,
   },
   {
     name: "Finance",
-    jobs: 325,
     icon: Wallet,
   },
   {
     name: "Technology",
-    jobs: 436,
     icon: Monitor,
   },
   {
     name: "Engineering",
-    jobs: 542,
     icon: CodeXml,
   },
   {
     name: "Business",
-    jobs: 211,
     icon: BriefcaseBusiness,
   },
   {
     name: "Human Resource",
-    jobs: 346,
     icon: UsersRound,
   },
 ];
@@ -244,112 +234,11 @@ export default function Home({ jobs, featuredJobs = jobs, latestJobs = jobs }) {
 
       
     
-{/* <section className="w-full bg-white px-5 py-10 sm:px-8 sm:py-14 lg:px-12">
-  <div className="mx-auto max-w-7xl">
-
-    <p className="mb-7 text-sm font-normal text-gray-400 sm:mb-8">
-      Companies we helped grow
-    </p>
-
-    <div className="grid grid-cols-2 items-center gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-x-12">
-
-      <div className="flex items-center justify-start">
-        <Image
-          src="/logos/vodafone.svg"
-          alt="Vodafone"
-          width={130}
-          height={45}
-          className="h-8 w-auto max-w-full object-contain grayscale opacity-35"
-        />
-      </div>
-
-      <div className="flex items-center justify-center">
-        <Image
-          src="/logos/intel.svg"
-          alt="Intel"
-          width={100}
-          height={45}
-          className="h-8 w-auto max-w-full object-contain grayscale opacity-35"
-        />
-      </div>
-
-      <div className="flex items-center justify-start sm:justify-center">
-        <Image
-          src="/logos/tesla.svg"
-          alt="Tesla"
-          width={145}
-          height={45}
-          className="h-7 w-auto max-w-full object-contain grayscale opacity-35"
-        />
-      </div>
-
-      <div className="flex items-center justify-center">
-        <Image
-          src="/logos/amd.svg"
-          alt="AMD"
-          width={120}
-          height={45}
-          className="h-8 w-auto max-w-full object-contain grayscale opacity-35"
-        />
-      </div>
-
-      <div className="col-span-2 flex items-center justify-center sm:col-span-1">
-        <Image
-          src="/logos/talkit.svg"
-          alt="Talkit"
-          width={115}
-          height={45}
-          className="h-8 w-auto max-w-full object-contain grayscale opacity-35"
-        />
-      </div>
-
-    </div>
-  </div>
-</section> */}
 
 
 
-<section className="w-full bg-white px-5 py-10 sm:px-8 sm:py-14 lg:px-12">
-  <div className="mx-auto max-w-7xl">
-    <p className="mb-8 text-lg text-gray-400">
-      Companies we helped grow
-    </p>
 
-    <div className="grid grid-cols-2 items-center gap-x-5 gap-y-9 sm:grid-cols-3 lg:grid-cols-5">
 
-      {/* Vodafone */}
-      <div className="flex items-center gap-2 text-gray-400">
-        <SiVodafone className="shrink-0 text-3xl" />
-        <span className="text-lg font-bold tracking-tight">
-          vodafone
-        </span>
-      </div>
-
-      {/* Intel */}
-      <div className="flex items-center justify-center text-gray-400">
-        <SiIntel className="text-6xl" />
-      </div>
-
-      {/* Tesla */}
-      <div className="flex items-center justify-center text-gray-400">
-        <SiTesla className="text-6xl" />
-      </div>
-
-      {/* AMD */}
-      <div className="flex items-center justify-center text-gray-400">
-        <SiAmd className="text-6xl" />
-      </div>
-
-      {/* Talkit */}
-      <div className="col-span-2 flex items-center justify-center text-gray-400 sm:col-span-1">
-        <span className="font-serif text-3xl font-bold tracking-tight">
-          Talkit
-        </span>
-      </div>
-
-    </div>
-  </div>
-</section>
 
 
 
@@ -428,7 +317,7 @@ export default function Home({ jobs, featuredJobs = jobs, latestJobs = jobs }) {
     <div className="grid grid-cols-2 gap-2 sm:gap-4">
       {!jobs.length && <p className="col-span-2 py-8 text-slate-500">No jobs published yet. Check back soon.</p>}
       {latestJobs.map((job) => {
-        const Logo = (job.demo && demoLogos[job.company]) || job.logo;
+        const Logo = job.logo;
 
         return (
           <Link href={`/jobs/${job.id}`}

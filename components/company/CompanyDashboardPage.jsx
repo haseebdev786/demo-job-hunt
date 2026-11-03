@@ -1,32 +1,10 @@
 "use client";
 
-// Place this file at: components/company/CompanyDashboardPage.jsx
-// (REPLACES the previous version of this file.)
-// Company dashboard overview (3.1 Dashboard Company), redesigned
-// to the better reference crop the user sent:
-//   - Header: COMPANY label + logo tile + COMPANY NAME from the
-//     LOGGED-IN session (props companyName / companyInitial),
-//     NOT hardcoded Nomad. If no one is logged in, the page
-//     falls back to Nomad / Maria (demo preview only).
-//   - Job statistics: header with Week / Month / Year tabs,
-//     then sub-tabs Overview / Jobs View / Jobs Applied.
-//     Overview = STACKED bars (bottom purple = Job Applied,
-//     top orange = Job View) + both summary cards on the right.
-//     Jobs View = orange bars only + Job Views card.
-//     Jobs Applied = purple bars only + Job Applied card.
-//     Hover any bar to see its tooltip (dark box, like the crop:
-//     Tue shows 122 Job Applied and 34 Job View).
-//   - Right column (outside Job statistics): Job Open + Applicants
-//     Summary, as before. Stat cards row and Job Updates row below
-//     are unchanged from the previous delivery.
-// Data comes from lib/company-dashboard-data.js (screenshot demo
-// numbers for stats/chart/summary -- see that file's note).
 
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Calendar, ChevronRight, Eye, FileText } from "lucide-react";
 import { companyDashboardData } from "@/lib/company-dashboard-data";
-import { demoCompanyJobHref } from "@/lib/demo-links";
 
 function StackedChart({ data, mode }) {
   const totals = data.map((d) =>
@@ -98,15 +76,15 @@ function StackedChart({ data, mode }) {
 }
 
 export default function CompanyDashboardPage({
-  companyName = "Nomad",
-  companyInitial = "N",
-  firstName = "Maria",
+  companyName = "Your Company",
+  companyInitial = "C",
+  firstName = "there",
   jobs = [],
 }) {
   const data = {
     ...companyDashboardData,
-    jobsOpen: companyDashboardData.jobsOpen + jobs.filter((job) => job.status === "Live").length,
-    jobUpdates: [...jobs, ...companyDashboardData.jobUpdates.map((job) => ({ ...job, id: `demo-${job.title}`, demo: true }))],
+    jobsOpen: jobs.filter((job) => job.status === "Live").length,
+    jobUpdates: jobs,
   };
   const [period, setPeriod] = useState("Week");
   const [viewMode, setViewMode] = useState("overview"); // overview | view | applied
@@ -141,7 +119,7 @@ export default function CompanyDashboardPage({
         <div>
           <h2 className="text-xl font-bold text-slate-800 sm:text-2xl">Good morning, {firstName}</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Here is your job listings statistic report from July 19 - July 25.
+            Here is an overview of your job listings.
           </p>
         </div>
         <button
@@ -281,7 +259,7 @@ export default function CompanyDashboardPage({
                 <div
                   key={b.label}
                   className={b.color}
-                  style={{ width: `${(b.count / summaryTotal) * 100}%` }}
+                  style={{ width: `${summaryTotal ? (b.count / summaryTotal) * 100 : 0}%` }}
                   title={`${b.label}: ${b.count}`}
                 />
               ))}
@@ -312,7 +290,7 @@ export default function CompanyDashboardPage({
           {data.jobUpdates.map((job) => {
 
             return (
-              <Link href={job.demo ? demoCompanyJobHref(job.title) : `/company/jobs/${job.id}`} key={job.id} className="flex flex-col border border-slate-200 bg-white p-5">
+              <Link href={`/company/jobs/${job.id}`} key={job.id} className="flex flex-col border border-slate-200 bg-white p-5">
                 <div className="flex items-start justify-between gap-3">
                   <span className={`flex h-10 w-10 items-center justify-center rounded-md text-lg font-black ${job.logoBg} ${job.logoColor}`}>
                     {job.logo}
@@ -339,10 +317,10 @@ export default function CompanyDashboardPage({
                 </div>
                 <div className="mt-auto pt-4">
                   <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-                    <div className="h-full bg-emerald-500" style={{ width: job.demo ? `${Math.min(100, job.applied / job.capacity * 100)}%` : "0%" }} />
+                    <div className="h-full bg-emerald-500" style={{ width: "0%" }} />
                   </div>
                   <p className="mt-2 text-xs text-slate-500">
-                    {job.demo ? `${job.applied} applied of ${job.capacity} capacity` : `${job.applicants} applications`}
+                    {`${job.applicants} applications`}
                   </p>
                 </div>
               </Link>

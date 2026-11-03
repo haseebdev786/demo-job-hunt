@@ -21,7 +21,7 @@ export default async function ApplicantDetailsPageRoute({ params }) {
   return (
     <ApplicantDetailsPage
       applicant={applicant}
-      companyName={sessionData.loggedIn ? sessionData.user.name : "Nomad"}
+      companyName={sessionData.loggedIn ? sessionData.user.name : "Your Company"}
     />
   );
 }

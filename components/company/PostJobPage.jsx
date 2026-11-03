@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { validateJobPost } from "@/lib/job-validation";
+import { validateJobPost, JOB_CATEGORIES, EMPLOYMENT_TYPES } from "@/lib/job-validation";
 import { ArrowLeft, Bold, Briefcase, FileText, Gift, Italic, Link as LinkIcon, List, Plus, X } from "lucide-react";
 
 const ALL_PERKS = [
@@ -17,8 +17,6 @@ const ALL_PERKS = [
   { title: "We give back", text: "We anonymously match any donation our employees make (up to $/€ 600) so they can support the organizations they care about most, times two." },
 ];
 
-const JOB_CATEGORIES = ["Design", "Marketing", "Business", "Technology", "Finance", "Sales", "Customer Service", "Engineering"];
-const EMPLOYMENT_TYPES = ["Full-Time", "Part-Time", "Remote", "Internship", "Contract"];
 
 function Stepper({ step }) {
   const steps = [
@@ -93,7 +91,7 @@ function TextAreaField({ value, onChange, placeholder }) {
   );
 }
 
-export default function PostJobPage({ companyName = "Nomad", companyInitial = "N" }) {
+export default function PostJobPage({ companyName = "Your Company", companyInitial = "C" }) {
   const [step, setStep] = useState(1);
   const [title, setTitle] = useState("");
   const [titleError, setTitleError] = useState("");
@@ -102,17 +100,17 @@ export default function PostJobPage({ companyName = "Nomad", companyInitial = "N
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [employment, setEmployment] = useState([]);
-  const [salaryMin, setSalaryMin] = useState(5000);
-  const [salaryMax, setSalaryMax] = useState(22000);
+  const [salaryMin, setSalaryMin] = useState("");
+  const [salaryMax, setSalaryMax] = useState("");
   const [categories, setCategories] = useState([]);
-  const [skills, setSkills] = useState(["Graphic Design", "Communication", "Illustrator"]);
+  const [skills, setSkills] = useState([]);
   const [newSkill, setNewSkill] = useState("");
   const [showSkillInput, setShowSkillInput] = useState(false);
   const [description, setDescription] = useState("");
   const [responsibilities, setResponsibilities] = useState("");
   const [whoYouAre, setWhoYouAre] = useState("");
   const [niceToHaves, setNiceToHaves] = useState("");
-  const [perks, setPerks] = useState(ALL_PERKS.slice(0, 3));
+  const [perks, setPerks] = useState([]);
   const [showPerkPicker, setShowPerkPicker] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [posted, setPosted] = useState(false);

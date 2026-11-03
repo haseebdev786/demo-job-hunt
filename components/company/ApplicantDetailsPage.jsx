@@ -1,82 +1,57 @@
 "use client";
 
-// Place this file at: components/company/ApplicantDetailsPage.jsx
-// Applicant Details (3.5 Applicant Profile, 3.6 Resume,
-// 3.7 Hiring Progress, 3.8 Interview Schedule), inside the
-// company layout. One page, four tabs on the right, left card
-// stays the same across tabs (like the screenshots).
-// Left card: avatar, name, title, star rating, Applied Jobs,
-// Stage progress bar, Schedule Interview button, Contact card.
-// Tabs:
-//   Applicant Profile: Personal Info + Professional Info (3.5)
-//   Resume: resume document preview (3.6)
-//   Hiring Progress: Current Stage pills, Stage Info, Move To
-//     Next Step, Notes + Add Notes (3.7)
-//   Interview Schedule: Interview List + Add Schedule Interview (3.8)
-// Local-only actions (disclosed in the UI): stage progression,
-// notes, interviews and feedback are LOCAL state only -- they are
-// NOT saved to MongoDB yet, so they do not persist after reload.
-// For Jerome Bell, all detail data comes from
-// lib/company-applicants-data.js (jeromeBellDetail). For other
-// applicants, detail data is GENERATED from their name/title/
-// score/stage (see buildDetail below) -- it is demo filler,
-// not screenshot data, and the page says so for non-Jerome rows.
 
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ChevronDown, Mail, MessageSquare, Phone, Star } from "lucide-react";
-import { jeromeBellDetail } from "@/lib/company-applicants-data";
 
 function buildDetail(applicant) {
-  if (applicant.id === "jerome-bell") return jeromeBellDetail;
-  const emailName = applicant.name.toLowerCase().replace(/[^a-z ]/g, "").replace(/ /g, "");
   return {
     title: applicant.jobRole,
-    appliedJob: { title: applicant.jobRole, category: "Marketing", type: "Full-Time", daysAgo: "2 days ago" },
+    appliedJob: { title: applicant.jobRole, category: "", type: "", daysAgo: "" },
     stage: applicant.stage,
     stageSteps: ["In Review", "Shortlisted", "Interview", "Hired / Declined"],
     contact: {
-      email: `${emailName}45@email.com`,
-      phone: "+44 1245 572 135",
-      instagram: `instagram.com/${emailName}`,
-      twitter: `twitter.com/${emailName}`,
-      website: `www.${emailName}.com`,
+      email: applicant.email || "Not specified",
+      phone: applicant.phone || "Not specified",
+      instagram: "",
+      twitter: "",
+      website: "",
     },
     profile: {
       fullName: applicant.name,
       gender: "Not specified",
       dateOfBirth: "Not specified",
-      language: "English",
+      language: "Not specified",
       address: "Not specified",
-      aboutMe: `${applicant.name} is a ${applicant.jobRole} candidate. Full profile details for this demo applicant are not in the screenshots -- replace them in lib/company-applicants-data.js with real data.`,
+      aboutMe: applicant.about || "No profile details added yet.",
       currentJob: applicant.jobRole,
       experienceYears: "Not specified",
       qualification: "Not specified",
-      skills: [applicant.jobRole, "English"],
+      skills: [],
     },
     resume: {
-      experiences: [{ title: applicant.jobRole, company: "Enterprise", period: "Present", text: "Demo resume experience for this applicant -- replace with real resume data." }],
+      experiences: [],
       education: "Not specified",
-      industryKnowledge: [applicant.jobRole],
-      tools: ["Figma"],
-      otherSkills: ["English"],
-      languages: ["English"],
-      social: [`www.${emailName}.com`],
+      industryKnowledge: [],
+      tools: [],
+      otherSkills: [],
+      languages: [],
+      social: [],
     },
     hiring: {
       interviewDate: "Not scheduled yet",
       interviewLocation: "Not specified",
       interviewStatus: "On Progress",
-      assignedTo: ["Maria Kelly"],
+      assignedTo: [],
       notes: [],
     },
     interviews: [],
   };
 }
 
-export default function ApplicantDetailsPage({ applicant, companyName = "Nomad" }) {
+export default function ApplicantDetailsPage({ applicant, companyName = "Your Company" }) {
   const detail = buildDetail(applicant);
-  const isJerome = applicant.id === "jerome-bell";
   const [tab, setTab] = useState("profile");
   const [stageIndex, setStageIndex] = useState(() => {
     if (applicant.stage === "Hired") return 3;
@@ -107,11 +82,7 @@ export default function ApplicantDetailsPage({ applicant, companyName = "Nomad" 
           <ChevronDown size={16} /> More Action
         </button>
       </div>
-      {!isJerome && (
-        <p className="mt-2 text-xs text-slate-400">
-          Detail data for this applicant is demo filler (name/title/score/stage based) -- only Jerome Bell&apos;s detail is from the screenshots.
-        </p>
-      )}
+
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
         {/* Left card */}
@@ -299,7 +270,7 @@ export default function ApplicantDetailsPage({ applicant, companyName = "Nomad" 
                     onSubmit={(e) => {
                       e.preventDefault();
                       if (!noteText.trim()) return;
-                      setNotes((prev) => [{ author: "Maria Kelly", date: "Just now", text: noteText.trim(), replies: "" }, ...prev]);
+                      setNotes((prev) => [{ author: "My Account", date: "Just now", text: noteText.trim(), replies: "" }, ...prev]);
                       setNoteText("");
                       setShowNoteForm(false);
                     }}
@@ -344,7 +315,7 @@ export default function ApplicantDetailsPage({ applicant, companyName = "Nomad" 
                   className="mt-4 grid gap-3 sm:grid-cols-2"
                 >
                   <input value={newInterview.name} onChange={(e) => setNewInterview({ ...newInterview, name: e.target.value })} placeholder="Interviewer name" className="border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
-                  <input value={newInterview.date} onChange={(e) => setNewInterview({ ...newInterview, date: e.target.value })} placeholder="Date, e.g. 14 July, 2021" className="border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
+                  <input value={newInterview.date} onChange={(e) => setNewInterview({ ...newInterview, date: e.target.value })} placeholder="Interview date" className="border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
                   <input value={newInterview.time} onChange={(e) => setNewInterview({ ...newInterview, time: e.target.value })} placeholder="Time, e.g. 10:00 AM - 11:00 AM" className="border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
                   <input value={newInterview.type} onChange={(e) => setNewInterview({ ...newInterview, type: e.target.value })} placeholder="Type, e.g. Written Test" className="border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
                   <button type="submit" className="bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 sm:col-span-2">Add Interview (local only)</button>

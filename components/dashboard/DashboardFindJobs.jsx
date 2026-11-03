@@ -4,7 +4,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { demoLogos } from "@/lib/catalog-logos";
+import { jobFilters as filters, matchesJobFilter } from "@/lib/job-filters";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import {
   ArrowLeft,
@@ -20,17 +20,12 @@ import {
 } from "lucide-react";
 
 
-const filterDefinitions = [
-  { title: "Type of Employment", field: "type", options: ["Full-Time", "Part-Time", "Remote", "Internship", "Contract"] },
-  { title: "Categories", field: "category", options: ["Design", "Sales", "Marketing", "Business", "Human Resource", "Finance", "Engineering", "Technology"] },
-  { title: "Job Level", field: "level", options: ["Entry Level", "Mid Level", "Senior Level", "Director"] },
-  { title: "Salary Range", field: "salary", options: ["€0 - €30k", "€30k - €60k", "€60k - €100k", "€100k+"] },
-];
+
 
 const popularTerms = ["UI Designer", "UX Researcher", "Android", "Admin"];
 
 function JobLogo({ job }) {
-  const Logo = (job.demo && demoLogos[job.company]) || job.logo;
+  const Logo = job.logo;
   if (!Logo) {
     return (
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-2xl font-extrabold text-indigo-600">
@@ -64,7 +59,7 @@ function FilterGroup({ group, selected, onToggle, jobs }) {
       {expanded && (
         <div className="space-y-3">
           {group.options.map((option) => {
-            const count = jobs.filter((job) => job[group.field] === option).length;
+            const count = jobs.filter((job) => matchesJobFilter(job, group.field, option)).length;
             return (
               <label key={option} className="flex cursor-pointer items-center gap-2.5 text-xs text-slate-500">
                 <input
@@ -98,7 +93,6 @@ function pageNumbers(current, total) {
 }
 
 export default function DashboardFindJobs({ jobs }) {
-  const filters = useMemo(() => filterDefinitions.map((group) => ({ ...group, options: [...new Set(jobs.flatMap((job) => group.field === "type" ? job.employment : group.field === "category" ? job.categories : [job[group.field]]))] })), [jobs]);
   const [keyword, setKeyword] = useState("");
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("");
@@ -140,14 +134,14 @@ export default function DashboardFindJobs({ jobs }) {
         matchesTerm &&
         matchesLocation &&
         filters.every(
-          ({ field }) => !(selected[field] || []).length || (field === "type" ? job.employment.some((type) => selected[field].includes(type)) : field === "category" ? job.categories.some((category) => selected[field].includes(category)) : selected[field].includes(job[field]))
+          ({ field }) => !(selected[field] || []).length || selected[field].some((option) => matchesJobFilter(job, field, option))
         )
       );
     });
     if (sort === "az") list.sort((a, b) => a.title.localeCompare(b.title));
     if (sort === "company") list.sort((a, b) => a.company.localeCompare(b.company));
     return list;
-  }, [jobs, search, location, selected, sort, filters]);
+  }, [jobs, search, location, selected, sort]);
 
   const totalPages = Math.max(1, Math.ceil(results.length / pageSize));
   const currentPage = Math.min(page, totalPages);
